@@ -1,0 +1,39 @@
+# Build artifacts
+build/
+dist/
+bin/
+obj/
+out/
+
+# Dependencies
+node_modules/
+vendor/
+packages/
+
+# Large assets (uncomment for game projects)
+# Assets/Bundles/
+# Assets/StreamingAssets/
+# *.asset
+# *.prefab
+# *.unity
+# *.fbx
+# *.png
+# *.jpg
+# *.wav
+# *.mp3
+
+# Generated code
+gen/
+*_generated.*
+*.designer.cs
+
+# IDE
+.idea/
+.vs/
+*.suo
+*.user
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
