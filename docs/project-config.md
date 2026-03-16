@@ -159,7 +159,7 @@ project/
 1. **"不可协商"标记** — 用于绝对规则
 2. **代码示例成对** — ✅ 正确 和 ❌ 错误 并排，比纯文字有效 10 倍
 3. **前向引用 Skill** — `详见 {skill-name} skill`，不在宪法里写细节
-4. **4-7 条** — 太多 AI 记不住
+4. **4-7 条** — 太多 AI 记不住（使用 §1、§2 编号格式）
 5. **HTML 注释引导** — `<!-- 填写指南 -->` 帮助填写
 
 ### 4.4 强制执行协议
@@ -191,7 +191,7 @@ project/
 
 ### 5.2 写作要点
 
-1. **回溯宪法** — 开头标注"基于宪法第 X 条"
+1. **回溯宪法** — 开头标注"per Constitution §X"
 2. **承认例外** — `允许的例外` 比绝对禁止更实用
 3. **以检查清单结尾** — 方便 AI 自检
 
@@ -387,7 +387,7 @@ description: "网络通信规范：HTTP请求、Socket连接、Protobuf消息收
 1. 宪法治理条款中加入强制执行协议（5 项不可协商条款）
 2. 使用 `tdd` skill 强制 RED-GREEN-REFACTOR 循环
 3. 使用 `verification` skill 强制完成前验证
-4. Commands 中显式声明子代理必须先读 constitution
+4. 子代理约束已集中在宪法治理条款中，Commands 不再重复声明
 
 ### 10.8 任务粒度太粗导致失控
 
@@ -397,32 +397,33 @@ description: "网络通信规范：HTTP请求、Socket连接、Protobuf消息收
 
 ---
 
-## 11. 新项目启动 Checklist
+## 11. 新项目启动
 
-### 第一天：基础设施
+### 自动初始化（推荐）
 
-- [ ] 复制 `template/` 到新项目根目录
-- [ ] 替换所有 `{占位符}`
-- [ ] 自定义 `.claudeignore`（template 已提供模板，按项目调整排除规则）
-- [ ] 创建 `MEMORY.md`（记录当前开发阶段和个人偏好）
+```bash
+# 1. 复制框架到项目
+cp -r template/ your-project/
+cp -r scripts/ your-project/scripts/
 
-### 第一周：宪法 + 核心 Skills
+# 2. 在项目目录下启动 Claude Code，运行：
+/init-project
+```
 
-- [ ] 为每个子系统编写 Constitution（4-7 条项目特有约束 + 强制执行协议）
-- [ ] 确认 `tdd` 和 `verification` 内置 Skill 适配项目类型（测试框架选择）
-- [ ] 创建 3-5 个核心架构 Skills
-- [ ] 创建 1 个 coding-style Rule
+`/init-project` 会自动扫描代码库，生成所有配置文件（constitution、rules、.claudeignore、Skills 等），只需确认一次分析结果。
 
-### 第一月：流程 + Commands
+### 手动初始化
 
-- [ ] 启用 `/feature-plan-creator` 和 `/bug-fix` Command
-- [ ] 随开发积累新增 Skills
-- [ ] 首次审计：检查 Rules 是否和 Constitution 重复
+如果 `/init-project` 的结果不满意，或偏好手动控制：
 
-### 持续
+- [ ] 复制 `template/` 到项目根目录
+- [ ] 替换 `CLAUDE.md`、`.claude/constitution.md`、`.claude/rules/coding-style.md` 中的 `{占位符}`
+- [ ] 自定义 `.claudeignore`
 
-- [ ] 每月审计一次（Rules 冗余、Skill 失效、@import 循环）
-- [ ] AI 输出不符合预期 → 缺 Skill 就加 Skill，规则不清就改 Constitution
+### 持续优化
+
+- [ ] AI 做错了什么就补什么（Skill / Rule / Constitution）
+- [ ] 每月审计一次（Rules 冗余、Skill 失效）
 - [ ] Bug 修复后评估是否需要更新 Rule 或 Skill
 
 ---

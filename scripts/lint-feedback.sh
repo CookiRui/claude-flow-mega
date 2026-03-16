@@ -42,8 +42,6 @@ run_lint() {
         py)
             if command -v ruff &> /dev/null; then
                 lint_output=$(ruff check "$file" 2>&1) || lint_exit=$?
-            elif command -v python &> /dev/null; then
-                lint_output=$(python -m ruff check "$file" 2>&1) || lint_exit=$?
             elif command -v flake8 &> /dev/null; then
                 lint_output=$(flake8 "$file" 2>&1) || lint_exit=$?
             fi

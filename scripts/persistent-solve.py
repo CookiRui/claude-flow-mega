@@ -26,9 +26,7 @@ from pathlib import Path
 # ============================================================
 DEFAULT_MAX_ROUNDS = 10
 DEFAULT_MAX_TIME = 3600      # 1 hour
-DEFAULT_MAX_COST = 5.0       # $5 (reserved, cannot track precisely yet)
 MAX_CONSECUTIVE_NO_PROGRESS = 3
-MAX_SAME_ERROR = 3
 
 # ============================================================
 # Core Logic

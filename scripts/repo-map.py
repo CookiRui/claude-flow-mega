@@ -9,11 +9,8 @@ Usage:
     python scripts/repo-map.py --format json       # Output JSON (for programmatic use)
 
 How it works:
-    Uses regex to extract class/function/method definitions (lightweight, no tree-sitter required).
-    Counts reference relationships and ranks symbols by usage frequency.
-
-    If tree-sitter is installed, it will be preferred for precise AST parsing.
-    Otherwise, regex fallback covers mainstream languages.
+    Uses regex to extract class/function/method definitions (lightweight, no dependencies required).
+    Optionally counts reference relationships and ranks symbols by usage frequency.
 
 Output:
     .repo-map.json  — Symbol index (JSON format)
@@ -159,7 +156,7 @@ def count_references(symbols: list, files: list, root: str) -> dict:
     return ref_count
 
 
-def build_repo_map(root: str) -> dict:
+def build_repo_map(root: str, count_refs: bool = True) -> dict:
     """Build the repository map."""
     files = scan_files(root)
     all_symbols = []
@@ -167,13 +164,14 @@ def build_repo_map(root: str) -> dict:
     for f in files:
         all_symbols.extend(extract_symbols(f, root))
 
-    ref_count = count_references(all_symbols, files, root)
-
-    # Sort by reference count
-    for s in all_symbols:
-        s["references"] = ref_count.get(s["name"], 0)
-
-    all_symbols.sort(key=lambda s: s["references"], reverse=True)
+    if count_refs:
+        ref_count = count_references(all_symbols, files, root)
+        for s in all_symbols:
+            s["references"] = ref_count.get(s["name"], 0)
+        all_symbols.sort(key=lambda s: s["references"], reverse=True)
+    else:
+        for s in all_symbols:
+            s["references"] = 0
 
     return {
         "root": root,
@@ -225,12 +223,13 @@ def main():
     parser.add_argument("root", nargs="?", default=".", help="Project root directory")
     parser.add_argument("--format", choices=["json", "md"], default="json", help="Output format")
     parser.add_argument("--output", "-o", help="Output file path (default: .repo-map.{format})")
+    parser.add_argument("--no-refs", action="store_true", help="Skip reference counting (faster on large codebases)")
 
     args = parser.parse_args()
     root = os.path.abspath(args.root)
 
     print(f"Scanning: {root}")
-    repo_map = build_repo_map(root)
+    repo_map = build_repo_map(root, count_refs=not args.no_refs)
     print(f"Found {repo_map['total_files']} files, {repo_map['total_symbols']} symbols")
 
     if args.format == "json":
