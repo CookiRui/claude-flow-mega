@@ -2,12 +2,13 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit",
-        "command": "bash scripts/lint-feedback.sh"
-      },
-      {
-        "matcher": "Write",
-        "command": "bash scripts/lint-feedback.sh"
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/lint-feedback.sh"
+          }
+        ]
       }
     ]
   }
