@@ -40,6 +40,96 @@ MAX_CONSECUTIVE_NO_PROGRESS = 3
 WIP_DIR = ".claude-flow"
 WIP_FILE = f"{WIP_DIR}/wip.md"
 
+
+# ============================================================
+# DAG Data Structures
+# ============================================================
+
+@dataclass
+class Task:
+    """A single sub-task in the DAG."""
+    id: str
+    description: str
+    acceptance_criteria: str
+    dependencies: list  # list of task IDs
+    files: list  # files to modify
+    status: str = "pending"  # pending | running | done | failed
+    result: dict = None  # result from claude session
+    retries: int = 0
+    max_retries: int = 2
+
+class TaskDAG:
+    """Directed Acyclic Graph of tasks with dependency tracking."""
+
+    def __init__(self, tasks: list[Task] = None):
+        self.tasks = {t.id: t for t in (tasks or [])}
+
+    def add_task(self, task: Task):
+        self.tasks[task.id] = task
+
+    def get_ready_tasks(self) -> list[Task]:
+        """Get tasks whose dependencies are all done."""
+        ready = []
+        for task in self.tasks.values():
+            if task.status != "pending":
+                continue
+            deps_met = all(
+                self.tasks[dep].status == "done"
+                for dep in task.dependencies
+                if dep in self.tasks
+            )
+            if deps_met:
+                ready.append(task)
+        return ready
+
+    def get_parallel_groups(self, ready: list[Task]) -> tuple[list[Task], list[Task]]:
+        """Split ready tasks into parallel (no file conflicts) and sequential groups."""
+        if len(ready) <= 1:
+            return ready, []
+
+        parallel = [ready[0]]
+        sequential = []
+        used_files = set(ready[0].files)
+
+        for task in ready[1:]:
+            task_files = set(task.files)
+            if task_files & used_files:  # conflict
+                sequential.append(task)
+            else:
+                parallel.append(task)
+                used_files |= task_files
+
+        return parallel, sequential
+
+    def mark_done(self, task_id: str, result: dict = None):
+        if task_id in self.tasks:
+            self.tasks[task_id].status = "done"
+            self.tasks[task_id].result = result
+
+    def mark_failed(self, task_id: str, result: dict = None):
+        if task_id in self.tasks:
+            task = self.tasks[task_id]
+            task.retries += 1
+            if task.retries >= task.max_retries:
+                task.status = "failed"
+            else:
+                task.status = "pending"  # retry
+            task.result = result
+
+    def has_ready_tasks(self) -> bool:
+        return len(self.get_ready_tasks()) > 0
+
+    def all_done(self) -> bool:
+        return all(t.status in ("done", "failed") for t in self.tasks.values())
+
+    def summary(self) -> str:
+        lines = []
+        for t in self.tasks.values():
+            cost = f" ${t.result.get('cost_usd', 0):.4f}" if t.result else ""
+            lines.append(f"  {t.id}: [{t.status}] {t.description}{cost}")
+        return "\n".join(lines)
+
+
 # ============================================================
 # Budget Tracker
 # ============================================================
