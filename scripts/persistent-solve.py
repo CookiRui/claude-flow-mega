@@ -27,6 +27,7 @@ import re
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -404,6 +405,103 @@ def run_claude_session(
     except FileNotFoundError:
         print("Error: 'claude' command not found. Make sure Claude Code is installed and in PATH.")
         sys.exit(1)
+
+
+# ============================================================
+# Task Execution
+# ============================================================
+
+def build_task_prompt(task: Task, goal: str) -> str:
+    """Build a prompt for executing a single sub-task."""
+    files_section = ""
+    if task.files:
+        files_list = "\n".join(f"  - {f}" for f in task.files)
+        files_section = f"\n## Files to Modify\n{files_list}\n"
+
+    return f"""You are executing a single sub-task as part of a larger goal.
+
+## Overall Goal
+{goal}
+
+## Your Sub-Task
+Task ID: {task.id}
+Description: {task.description}
+
+## Acceptance Criteria
+{task.acceptance_criteria}
+{files_section}
+## Instructions
+1. Complete the task described above.
+2. Before finishing, verify that ALL acceptance criteria listed above are satisfied.
+3. Once the task is complete and verified, commit your changes with the message:
+   `checkpoint: {task.id} {task.description}`
+4. Do not proceed beyond the scope of this sub-task.
+"""
+
+
+def execute_task(task: Task, goal: str, budget: BudgetTracker) -> dict:
+    """Execute a single task atomically."""
+    prompt = build_task_prompt(task, goal)
+    result = run_claude_session(prompt, budget_usd=budget.next_task_budget())
+    budget.record(task.id, result["cost_usd"])
+
+    status_str = "success" if result["success"] else "fail"
+    print(f"  Task {task.id}: [{status_str}] cost=${result['cost_usd']:.4f}")
+
+    return result
+
+
+def execute_parallel(tasks: list, goal: str, budget: BudgetTracker) -> list:
+    """Execute multiple tasks in parallel using ThreadPoolExecutor."""
+    results = [None] * len(tasks)
+
+    with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
+        futures = {
+            executor.submit(execute_task, task, goal, budget): idx
+            for idx, task in enumerate(tasks)
+        }
+        for future in futures:
+            idx = futures[future]
+            results[idx] = future.result()
+
+    return results
+
+
+def execute_dag(dag: TaskDAG, goal: str, budget: BudgetTracker) -> None:
+    """Main DAG execution loop — runs tasks respecting dependencies and budget."""
+    while dag.has_ready_tasks():
+        if not budget.can_afford():
+            print(f"\n[BUDGET EXHAUSTED] Remaining: ${budget.remaining():.4f}. Stopping DAG execution.")
+            break
+
+        ready = dag.get_ready_tasks()
+        parallel, sequential = dag.get_parallel_groups(ready)
+
+        # Execute parallel batch
+        if parallel:
+            print(f"\n  Executing {len(parallel)} task(s) in parallel: "
+                  f"{[t.id for t in parallel]}")
+            results = execute_parallel(parallel, goal, budget)
+            for task, result in zip(parallel, results):
+                if result["success"]:
+                    dag.mark_done(task.id, result)
+                else:
+                    dag.mark_failed(task.id, result)
+
+        # Execute sequential tasks one by one
+        for task in sequential:
+            if not budget.can_afford():
+                print(f"\n[BUDGET EXHAUSTED] Remaining: ${budget.remaining():.4f}. Stopping DAG execution.")
+                break
+            print(f"\n  Executing task sequentially: {task.id}")
+            result = execute_task(task, goal, budget)
+            if result["success"]:
+                dag.mark_done(task.id, result)
+            else:
+                dag.mark_failed(task.id, result)
+
+        print(f"\n--- DAG Status ---\n{dag.summary()}\n"
+              f"Budget: {budget.summary()}\n------------------")
 
 
 # ============================================================
