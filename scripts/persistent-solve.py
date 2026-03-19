@@ -44,7 +44,7 @@ from pathlib import Path
 # Constants
 # ============================================================
 DEFAULT_MAX_ROUNDS = 10
-DEFAULT_MAX_TIME = 3600      # 1 hour
+DEFAULT_MAX_TIME = 7200      # 2 hours
 MAX_CONSECUTIVE_NO_PROGRESS = 3
 WIP_DIR = ".claude-flow"
 WIP_FILE = f"{WIP_DIR}/wip.md"
