@@ -21,11 +21,13 @@ WIP handshake:
 """
 
 import argparse
+import json
 import os
 import re
 import subprocess
 import sys
 import time
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -37,6 +39,46 @@ DEFAULT_MAX_TIME = 3600      # 1 hour
 MAX_CONSECUTIVE_NO_PROGRESS = 3
 WIP_DIR = ".claude-flow"
 WIP_FILE = f"{WIP_DIR}/wip.md"
+
+# ============================================================
+# Budget Tracker
+# ============================================================
+
+class BudgetTracker:
+    """Track cumulative costs across all claude sessions."""
+
+    def __init__(self, max_budget_usd: float = 5.0, per_task_budget_usd: float = 0.5):
+        self.max_budget = max_budget_usd
+        self.per_task_budget = per_task_budget_usd
+        self.total_spent = 0.0
+        self.task_costs = {}  # task_id -> cost
+
+    def record(self, task_id: str, cost_usd: float):
+        """Record cost for a task."""
+        self.total_spent += cost_usd
+        self.task_costs[task_id] = self.task_costs.get(task_id, 0) + cost_usd
+
+    def remaining(self) -> float:
+        """Return remaining budget."""
+        return max(0, self.max_budget - self.total_spent)
+
+    def can_afford(self, estimated_cost: float = None) -> bool:
+        """Check if we can afford another task."""
+        if estimated_cost is None:
+            estimated_cost = self.per_task_budget
+        return self.remaining() >= estimated_cost * 0.1  # Allow if at least 10% of estimate remains
+
+    def next_task_budget(self) -> float:
+        """Get budget for next task (min of per_task and remaining)."""
+        return min(self.per_task_budget, self.remaining())
+
+    def summary(self) -> str:
+        """Return a summary string."""
+        lines = [f"Total spent: ${self.total_spent:.4f} / ${self.max_budget:.2f}"]
+        for tid, cost in self.task_costs.items():
+            lines.append(f"  {tid}: ${cost:.4f}")
+        return "\n".join(lines)
+
 
 # ============================================================
 # WIP File Operations
