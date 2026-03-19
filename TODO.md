@@ -3,7 +3,7 @@
 ## 扩大影响力（优先）
 
 - [x] 发 npm 包 — `npx claude-autosolve init`（已发布 v1.0.0）
-- [ ] 加英文 README — Claude Code 用户主要在英文社区
+- [x] 加英文 README — README_EN.md + 双语互链
 - [ ] 写一篇实战博客（Medium / dev.to）— "How I made Claude Code 10x more reliable"
 - [ ] 发 Twitter/X 线程 — 标记 @AnthropicAI，Claude Code 社区活跃
 - [ ] 提交到 awesome-claude-code 列表 — 长尾曝光

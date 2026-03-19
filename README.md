@@ -1,5 +1,7 @@
 # claude-flow
 
+**[English](README_EN.md)**
+
 > 让 Claude Code 拥有结构化项目认知 + 自主执行能力的开源框架。
 
 ## 这是什么？
