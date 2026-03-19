@@ -216,15 +216,20 @@ python scripts/repo-map.py /path/to/project --no-refs # 大项目跳过引用计
 # Agent(model="haiku", prompt="Rename variable: ...")
 ```
 
-### 预算策略
+### 预算策略（已落地）
 
-```yaml
-budget:
-  strategy:
-    budget > 50%: Normal mode (search + experiment + verify)
-    budget 20~50%: Economy mode (prefer reusing known solutions)
-    budget < 20%: Emergency mode (only highest-confidence actions, or escalate)
+`persistent-solve.py` 的 DAG 模式已实现实际费用追踪和预算控制：
+
+```bash
+python scripts/persistent-solve.py "目标" --max-budget-usd 5.0 --per-task-budget 0.5
 ```
+
+| 机制 | 实现方式 |
+|------|----------|
+| 费用追踪 | `claude -p --output-format json` 返回 `total_cost_usd` |
+| 总预算熔断 | BudgetTracker 累计所有子任务费用，达到 `--max-budget-usd` 即停止 |
+| 单任务预算 | `--max-budget-usd` 参数传给每个 `claude -p` 调用 |
+| 线程安全 | threading.Lock 保护并行执行时的费用累计 |
 
 ### 上下文压缩应对
 
@@ -348,9 +353,9 @@ type: feedback
 | 入口分流 + 模型路由 | 对话开始时分析目标               | 判断 S/M/L/XL 级别 → 选路径 + 选模型                     |
 | 代码地图            | `scripts/repo-map.py`            | L/XL 任务前生成 `.repo-map.json`                         |
 | 目标审查            | `AskUserQuestion`                | 信心不足时弹出选项让用户选择                             |
-| 目标分解 (DAG)      | `TaskCreate` + `TaskList`        | 每个子任务创建 Task，标注依赖关系                        |
-| 并行执行            | `Agent()` 多个并行调用           | 一条消息中同时发起多个 Agent 工具调用                    |
-| 并行隔离            | `Agent(isolation="worktree")`    | 冲突任务各自在独立 worktree 中执行                       |
+| 目标分解 (DAG)      | `claude -p` + JSON 解析          | `/deep-task`: Agent 工具; `persistent-solve.py`: 独立 claude -p 调用返回 JSON DAG |
+| 并行执行            | `Agent()` 或 `ThreadPoolExecutor`| `/deep-task`: 多 Agent 并行; `persistent-solve.py`: 进程级并行  |
+| 并行隔离            | 文件冲突检测                     | 无冲突→并行; 有冲突或文件列表为空→串行（安全优先）       |
 | 检查点              | `git commit`                     | `git commit -m "checkpoint: {task_name}"`                |
 | 回滚                | `git revert` / `git checkout`    | 精确回滚到上一个检查点                                   |
 | Lint/Test 反馈闭环  | Hooks + `lint-feedback.sh`       | 编辑 → 自动 lint/test → 失败自动反馈 → AI 自动修         |
@@ -360,7 +365,9 @@ type: feedback
 | 长期记忆            | `~/.claude/projects/*/memory/`   | 验证过的模式存为 memory 文件                             |
 | 元策略存储          | `memory/meta_*.md`               | 按问题域索引                                             |
 | 分级升级            | `AskUserQuestion`                | 根据信心值选择 Level 0-3                                 |
-| 断点续传            | WIP 机制                         | 预算耗尽/升级时自动保存 WIP 文件                         |
+| 费用追踪            | `--output-format json` 解析      | 每个子任务精确追踪 cost_usd、input/output tokens         |
+| 预算熔断            | `BudgetTracker`                  | `--max-budget-usd` 总预算 + `--per-task-budget` 单任务预算 |
+| 断点续传            | WIP 机制（Legacy 模式）          | 预算耗尽/升级时自动保存 WIP 文件                         |
 | 上下文保护          | 子 Agent 隔离 + 检查点摘要       | 重型搜索交给子 Agent，定期生成进度摘要                   |
 
 ---
@@ -400,4 +407,4 @@ type: feedback
 
 ## 核心原则
 
-入口先分流选模型，简单任务走快速路径。代码地图先扫描，规划时查地图不盲搜。目标先审查再分解，分解要预检防方向错。并行要检测冲突防踩踏，失败要萃取残值防浪费。编辑后 lint/test 自动闭环，失败自动修复不等人。验证要分级防盲区，执行要留轨迹防黑盒。贵模型做规划，便宜模型做编辑，成本省六成。资源预算防烧钱，上下文要外化防压缩丢失。检查点防级联故障，双层记忆防重复踩坑。元学习让系统越用越聪明，不在同一个地方低效两次。**不达目的不停止**——单会话预算耗尽不是终点，外层持久化循环自动从 WIP 恢复，继续推进直到目标达成或熔断。
+入口先分流选模型，简单任务走快速路径。代码地图先扫描，规划时查地图不盲搜。目标先审查再分解，分解要预检防方向错。并行要检测冲突防踩踏（空文件列表视为潜在冲突），失败要萃取残值防浪费。编辑后 lint/test 自动闭环，失败自动修复不等人。验证要分级防盲区，执行要留轨迹防黑盒。贵模型做规划，便宜模型做编辑，成本省六成。**资源预算已落地**——`persistent-solve.py` 通过 `--output-format json` 精确追踪每个子任务的实际费用，`--max-budget-usd` 总预算 + `--per-task-budget` 单任务预算实现真正的费用熔断。上下文要外化防压缩丢失。检查点防级联故障，双层记忆防重复踩坑。元学习让系统越用越聪明，不在同一个地方低效两次。**不达目的不停止**——DAG 模式下每个子任务是独立的 `claude -p` 调用，预算耗尽或全部完成时精确停止。
