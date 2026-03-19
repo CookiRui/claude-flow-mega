@@ -101,72 +101,66 @@ python scripts/persistent-solve.py "goal" --max-time 1800  # 30 min total
 
 ## WIP 机制
 
-WIP（Work In Progress）是持久化循环的状态存储格式。
+WIP（Work In Progress）是持久化循环的状态存储格式。**固定路径：`.claude-flow/wip.md`**。
+
+脚本和 Claude 之间通过这个文件"握手"：
+- 脚本在 prompt 中告诉 Claude WIP 文件路径
+- Claude 在每轮结束前写入进度
+- 脚本读取 WIP 判断状态，并注入下一轮 prompt
 
 ### 保存时机
 
 - 预算即将耗尽时
 - 升级给人类时（Level 3）
 - 用户主动要求保存
-- 外层调度器触发的轮次结束时
+- 目标达成时（status 改为 done）
 
 ### WIP 文件格式
 
 ```yaml
 ---
-status: active              # active | paused | done
+status: active              # active | need_human | done
 goal: "目标描述"
 round: 3                    # 当前第几轮
-auto_resume: true            # 是否允许自动恢复
 ---
 
-## 已完成任务
+## Completed
 - [x] 定位瓶颈（DrawCall 40%, GC 25%, Physics 15%）
 - [x] 优化 DrawCall（800 → 320）
 
-## 剩余 DAG
+## Remaining
 - [ ] 优化 GC（依赖: 无）
 - [ ] 优化 Physics（依赖: 无）
 - [ ] 最终验证（依赖: GC, Physics）
 
-## 已尝试策略与残值
-- DrawCall: SRP Batcher 失败（Built-in RP）→ 残值: 确认渲染管线类型 + DrawCall 统计脚本
+## Strategies Tried
+- DrawCall: SRP Batcher 失败（Built-in RP）→ 残值: 确认渲染管线类型
 - DrawCall: Static/Dynamic Batching 成功
 
-## 活跃约束
+## Constraints
 - 不能切换渲染管线
 - 不能降低画质
 
-## 上轮退出原因
-预算耗尽（token 用了 450k/500k）
-
-## 下一步建议
+## Next Steps
 1. 优先处理 GC（占比 25%，预期收益最大）
 2. 搜索 GC 优化最佳实践
 ```
 
+### 状态判断优先级
+
+脚本按以下优先级判断每轮结果：
+
+1. **WIP status 字段** — `done` / `need_human` / `active`（主要依据）
+2. **WIP [x] 计数变化** — 判断是否有实际进展
+3. **WIP 内容变化** — 兜底检测
+4. **stdout 中的标记** — `[GOAL_ACHIEVED]` 作为最后 fallback
+
 ### WIP 恢复流程
 
-1. 扫描 WIP 目录，找到 `status: active` 的文件
-2. 读取 WIP 文件，恢复上下文
-3. 从"下一步建议"开始执行，不重复已完成的工作
-4. 更新 WIP 文件（轮次 +1，追加新完成的任务）
-
-### 普通 WIP vs 持久化循环 WIP
-
-| 字段               | 普通 WIP | 持久化循环 WIP |
-|--------------------|----------|----------------|
-| 任务标题和目标     | ✅       | ✅             |
-| 已完成的工作       | ✅       | ✅             |
-| 待解决的问题       | ✅       | ✅             |
-| 相关文件路径       | ✅       | ✅             |
-| round 轮次         | ❌       | ✅             |
-| auto_resume 标记   | ❌       | ✅             |
-| 剩余 DAG           | ❌       | ✅             |
-| 已尝试策略与残值   | ❌       | ✅             |
-| 活跃约束           | ❌       | ✅             |
-| 退出原因           | ❌       | ✅             |
-| 下一步建议         | ❌       | ✅             |
+1. 脚本读取 `.claude-flow/wip.md`
+2. 将 WIP 全文注入下一轮 prompt
+3. Claude 从 "Next Steps" 开始执行，不重复已完成的工作
+4. Claude 更新 WIP 文件（轮次 +1，追加新完成的任务）
 
 ---
 
@@ -176,6 +170,6 @@ auto_resume: true            # 是否允许自动恢复
 |------------------------------|-------------------------------------|------------|
 | **方案 A: 脚本调度**         | `python scripts/persistent-solve.py` | 全自动     |
 | **方案 B: GitHub Actions**   | Push WIP 后触发 Action              | 全自动     |
-| **方案 C: 手动恢复**         | 人工恢复 WIP                        | 手动       |
+| **方案 C: 手动恢复**         | 人工在 Claude Code 中 `Resume WIP`  | 手动       |
 
 **推荐**：日常使用方案 C（手动），重要任务用方案 A（脚本调度）。

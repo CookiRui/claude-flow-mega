@@ -37,3 +37,6 @@ gen/
 *.log
 *.tmp
 *.bak
+
+# Persistent loop runtime state
+.claude-flow/
