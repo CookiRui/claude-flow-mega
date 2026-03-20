@@ -66,12 +66,17 @@ Output your classification and reasoning.
    - Run `python scripts/repo-map.py --format md --no-refs` if available (generates code map)
    - Load relevant Skills
 
-5. **Plan model routing**:
+5. **Read historical learnings**: Read `.claude-flow/learnings.md` if it exists.
+   - Extract pitfalls relevant to this task's domain (e.g., same module, same type of change)
+   - Add as explicit constraints to Phase 2 decomposition ("avoid X because it failed before")
+   - If a previous task of the same type succeeded, reuse its strategy as the default approach
+
+6. **Plan model routing**:
    - Editing/simple tasks → `Agent(model="haiku")`
    - Search/analysis tasks → `Agent(model="sonnet")`
    - Architecture decisions → keep in main context (current model)
 
-6. Output: refined goal statement + feasibility assessment.
+7. Output: refined goal statement + feasibility assessment + learnings constraints.
    - **XL only**: `AskUserQuestion` — must wait for user confirmation before Phase 2.
 
 ---
@@ -153,9 +158,45 @@ When a sub-task fails, before discarding:
 
 Record salvage in the DAG status for future attempts.
 
+### Inter-Agent Signal Channel
+
+When parallel Agents discover information that affects other tasks, use `.claude-flow/signals/` for lightweight communication:
+
+```
+.claude-flow/signals/
+  {source-task}_to_{target-task}.md   # e.g., T1_to_T3.md
+```
+
+**Writing signals** (by executing Agent):
+- Only write a signal when a discovery **changes the contract** between tasks (e.g., API signature changed, schema field renamed, dependency added)
+- Signal format: one line summary + affected files + what the downstream task should do differently
+- Do NOT signal style preferences or non-blocking observations
+
+**Reading signals** (by main execution loop):
+- After each parallel batch completes, check `.claude-flow/signals/` for new files
+- If a signal targets a not-yet-started task, inject the signal content into that task's Agent prompt
+- If a signal targets an already-completed task, flag for re-verification in L1
+- Clean up signals after all tasks complete
+
+This is a **best-effort** protocol — Agents that don't write signals are not in violation. The value is in catching interface-breaking changes early rather than discovering them in L2.
+
 ---
 
 ## Phase 4: Three-Level Verification
+
+### Verification Level Selector
+
+Before running verification, assess the **change impact** to avoid wasting budget on low-risk changes:
+
+| Change Impact | Files Changed | Verification Level |
+|--------------|---------------|-------------------|
+| Docs / comments only | `*.md`, comments | L1 only — skip L2 and L3 |
+| Tests only | test files only | L1 only — tests verify themselves |
+| Config / infra | CI, settings, scripts | L1 + L3 (skip L2, go straight to full test suite) |
+| Core logic (M task) | implementation files | L1 + L2-lite (1 round, no loop) + L3 |
+| Core logic (L/XL task) | implementation files | L1 + L2-full (up to 3 rounds) + L3 |
+
+Apply this selector **after Phase 3 completes**. Run `git diff --stat` to classify which category the actual changes fall into, regardless of original task complexity.
 
 ### L1 — Self-Check (during Phase 3, per sub-task)
 Each Agent verifies its own acceptance criteria. Already done in execution loop.
@@ -287,6 +328,34 @@ Analyze the execution trace and save insights:
 3. Any new patterns worth remembering?
 4. How accurate were the time/effort estimates?
 
+### 5.0 Cost Report
+
+After all execution completes, output a cost summary to the user:
+
+```
+## Cost Report
+
+| Category | Count | Est. Tokens (in/out) | Est. Cost |
+|----------|-------|---------------------|-----------|
+| Phase 3 Agents | {N} calls | {input}K / {output}K | ${amount} |
+| L2 Review rounds | {N} rounds | {input}K / {output}K | ${amount} |
+| L2-Alt Test rounds | {N} rounds | {input}K / {output}K | ${amount} |
+| **Total** | | | **${total}** |
+
+Model breakdown: haiku × {N}, sonnet × {N}, main context × 1
+```
+
+Estimation rules:
+- Each Agent call ≈ 8K input + 2K output tokens (baseline)
+- Add file content tokens: count lines read × 4 tokens/line
+- Pricing: haiku $0.25/$1.25 per M, sonnet $3/$15 per M, opus $15/$75 per M
+- This is a **rough estimate** — label it clearly as approximate
+
+Also append the cost to the learnings entry (Phase 5.1) as:
+```
+- **Cost**: ~${total} ({N} agent calls: haiku × {N}, sonnet × {N})
+```
+
 ### 5.1 Write to project: `.claude-flow/learnings.md`
 
 This is the **project-level** learning log, visible to all team members and persisted in git.
@@ -356,7 +425,7 @@ If the execution revealed a constraint that the constitution or rules don't cove
 - Do not skip Phase 0 complexity classification
 - Do not run L/XL tasks through S/M fast path
 - Do not use `Agent(model="opus")` for simple edits (cost waste)
-- Do not skip L2 verification for L/XL tasks
+- Do not skip L2 verification for L/XL tasks that touch core logic (use Verification Level Selector for exemptions)
 - Do not commit without passing L1 check
 - Do not proceed past XL decomposition without user confirmation
 - Do not declare complete before L3 verification for L/XL tasks

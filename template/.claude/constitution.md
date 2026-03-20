@@ -69,3 +69,4 @@ The following clauses are non-negotiable:
 3. **Confirmation gates cannot be skipped** — Steps marked "must wait for user confirmation" in Commands must not be skipped.
 4. **Pre-completion verification** — Before declaring any feature or bug fix "complete", the `verification` skill checklist must be executed.
 5. **Violation handling** — If committed code violates the constitution, immediately flag and fix it.
+6. **Skill semantic matching** — Skills are triggered not only by keywords but by task semantics. When a task involves adding or modifying functional behavior → load `tdd`. When a task is about to be declared complete → load `verification`. Judge by what the task *does*, not just what words the user used.

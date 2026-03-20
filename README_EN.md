@@ -92,6 +92,7 @@ python scripts/persistent-solve.py "Refactor the entire data layer" --max-budget
 | `/feature-plan-creator <name>` | Requirements → Design → Micro-task breakdown (each ≤5 min) |
 | `/bug-fix <description>` | Root cause diagnosis → Regression test → Fix → Learning capture |
 | `/deep-task <goal>` | 8-layer engine: Complexity routing → DAG → Parallel Agents → 3-level verification → Meta-learning |
+| `/upgrade` | Upgrade claude-flow templates to latest version (detect new/conflict/safe updates) |
 
 ---
 
@@ -127,7 +128,8 @@ template/
         ├── init-project.md            # AI auto-analyze and generate configs
         ├── feature-plan-creator.md    # Requirements → Design → Micro-task breakdown
         ├── bug-fix.md                 # Bug diagnosis → Fix → Learning capture
-        └── deep-task.md              # 8-layer autonomous engine (DAG + Parallel Agents + Verification)
+        ├── deep-task.md              # 8-layer autonomous engine (DAG + Parallel Agents + Verification)
+        └── upgrade.md               # Upgrade claude-flow templates to latest version
 ```
 
 ---

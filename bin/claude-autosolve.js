@@ -31,6 +31,7 @@ const TEMPLATE_ITEMS = [
   ".claude/commands/feature-plan-creator.md",
   ".claude/commands/bug-fix.md",
   ".claude/commands/deep-task.md",
+  ".claude/commands/upgrade.md",
 ];
 
 const SCRIPT_ITEMS = [

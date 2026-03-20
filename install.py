@@ -41,6 +41,7 @@ TEMPLATE_ITEMS = [
     ".claude/commands/feature-plan-creator.md",
     ".claude/commands/bug-fix.md",
     ".claude/commands/deep-task.md",
+    ".claude/commands/upgrade.md",
 ]
 
 SCRIPT_ITEMS = [

@@ -92,6 +92,7 @@ python scripts/persistent-solve.py "重构整个数据层架构" --max-budget-us
 | `/feature-plan-creator <name>` | 需求确认 → 技术方案 → ≤5 分钟微任务拆解 |
 | `/bug-fix <description>` | 根因诊断 → 回归测试 → 修复 → 经验固化 |
 | `/deep-task <goal>` | 8 层自主引擎：复杂度分流 → DAG 分解 → 并行 Agent → 三级验证 → 元学习 |
+| `/upgrade` | 升级 claude-flow 模板到最新版本（检测新增/冲突/安全更新） |
 
 ---
 
@@ -127,7 +128,8 @@ template/
         ├── init-project.md            # AI 自动分析项目并生成配置
         ├── feature-plan-creator.md    # 需求分析 → 技术方案 → 微任务拆解
         ├── bug-fix.md                 # Bug 诊断 → 修复 → 经验固化
-        └── deep-task.md              # 8 层自主执行引擎（DAG + 并行 Agent + 三级验证）
+        ├── deep-task.md              # 8 层自主执行引擎（DAG + 并行 Agent + 三级验证）
+        └── upgrade.md               # 升级 claude-flow 模板到最新版本
 ```
 
 ---
