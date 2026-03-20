@@ -126,6 +126,32 @@ Before proceeding, verify:
 
 **XL tasks**: present DAG via `AskUserQuestion`, must wait for confirmation.
 
+### Budget Gate
+
+Before executing, estimate total cost from the DAG:
+
+```
+For each task:
+  base = 8K input + 2K output tokens
+  file_tokens = (estimated lines across task.files) × 4 tokens/line
+  task_tokens = base + file_tokens
+
+  model_cost = {
+    haiku:  (task_tokens.in × $0.25 + task_tokens.out × $1.25) / 1M,
+    sonnet: (task_tokens.in × $3 + task_tokens.out × $15) / 1M,
+    main:   (task_tokens.in × $15 + task_tokens.out × $75) / 1M
+  }[model_from_complexity]
+
+estimated_total = sum(all task costs) × 1.5   # 1.5× buffer for L2 review rounds
+```
+
+**Decision rules**:
+- estimated_total ≤ $0.50 → proceed silently
+- $0.50 < estimated_total ≤ $3.00 → notify user of estimate, proceed
+- estimated_total > $3.00 → `AskUserQuestion`: "Estimated cost: ~${total} for {N} tasks. Proceed / Reduce scope / Cancel?"
+
+This is a rough estimate — label it as approximate. The goal is catching unexpectedly expensive DAGs before execution, not precise accounting.
+
 ---
 
 ## Phase 3: Parallel Execution Loop
