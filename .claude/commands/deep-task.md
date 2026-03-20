@@ -43,7 +43,11 @@ Output your classification and reasoning.
 
 ## Phase 1: Goal Review (NO code changes)
 
-1. **Check for existing WIP**: Read `.claude-flow/wip.md`. If it exists and matches this goal, resume from Phase 3 with the existing DAG.
+1. **Check for existing WIP**: Read `.claude-flow/wip.md`. If it exists and matches this goal:
+   - Read the `saved_at_commit` field from the WIP file
+   - Compare with current `git rev-parse HEAD`
+   - **Match** → safe to resume from Phase 3 with the existing DAG
+   - **Mismatch** → warn user: "Code has changed since WIP was saved (saved at {hash}, now at {HEAD}). Resume anyway / Start fresh?" via `AskUserQuestion`
 
 2. **Goal Clarity Gate** (L/XL tasks are complex enough to warrant this):
    - Is the scope clear (what's included / excluded)?
@@ -487,7 +491,7 @@ If the execution revealed a constraint that the constitution or rules don't cove
 | > 0.8 | Proceed silently |
 | 0.5–0.8 | Notify user of approach, continue |
 | 0.3–0.5 | `AskUserQuestion` with 2-3 options |
-| < 0.3 | Save WIP to `.claude-flow/wip.md`, full handoff |
+| < 0.3 | Save WIP to `.claude-flow/wip.md` (include `saved_at_commit: {git rev-parse HEAD}`), full handoff |
 
 ---
 
