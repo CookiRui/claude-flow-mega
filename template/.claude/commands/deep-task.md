@@ -221,17 +221,19 @@ Each Agent verifies its own acceptance criteria. Already done in execution loop.
 L2 is a **Reviewer ↔ Executor convergence loop**, not a one-shot review.
 
 ```
-┌─ Reviewer Agent (sonnet) ◄───────────────┐
-│  审查代码，提出问题清单                      │
-│  输出: ISSUES [...] 或 PASS                 │
-├─ PASS? ─── 是 → 进入 L3 ─────────────────→ 退出
-│         └─ 否 ↓                             │
-│  Executor Agent (sonnet)                    │
-│  修复 Reviewer 提出的每个问题                │
-│  git commit -m "fix: L2 review round N"     │
-│                                             │
-└─ 回到 Reviewer，重新审查 ────────────────────┘
-   (最多 3 轮，第 3 轮仍有问题 → 升级给用户)
+┌─ Reviewer Agent (sonnet) ◄──────────────────────┐
+│  审查代码，输出 ISSUES [...] 或 PASS              │
+├─ PASS? ─── 是 → 进入 L3 ──────────────────────→ 退出
+│         └─ 否 ↓                                  │
+│  收敛检测:                                        │
+│    blocker 数 ≥ 上轮? → 停止，升级给用户 ────────→ 退出
+│    同一 blocker 连续 2 轮? → 标记需人工，移除      │
+│    已达 3 轮? → 升级给用户 ──────────────────────→ 退出
+│         ↓ (收敛中，继续)                          │
+│  Executor Agent (sonnet)                         │
+│  修复问题，git commit                             │
+│                                                  │
+└─ 回到 Reviewer ──────────────────────────────────┘
 ```
 
 **Round 1 — Reviewer Agent:**
@@ -283,9 +285,16 @@ Rules:
 )
 ```
 
-**Then back to Reviewer** with the updated diff. Repeat until PASS or 3 rounds.
+**Then back to Reviewer** with the updated diff. Repeat until PASS or convergence limit.
 
-**Round limit**: If Reviewer still reports issues after 3 rounds → `AskUserQuestion` with the remaining issues, let user decide whether to fix or accept.
+**Convergence detection** (replaces fixed 3-round limit):
+
+After each Reviewer round, count blockers (critical issues). Apply these rules:
+- **PASS** → exit to L3
+- **Blocker count decreased** vs previous round → continue (making progress)
+- **Blocker count unchanged or increased** → **stop immediately**, escalate to user via `AskUserQuestion` with the remaining issues. Continuing would waste budget without progress.
+- **Same blocker appears in 2 consecutive rounds** (executor failed to fix it) → mark as "needs human intervention", remove from executor's list, continue with remaining issues
+- **Hard cap: 3 rounds** — even if converging, stop after 3 rounds and escalate any remaining issues
 
 ### L2-Alt — Test Adversarial Loop (for critical paths)
 
