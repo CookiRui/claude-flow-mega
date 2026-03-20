@@ -10,6 +10,7 @@ scripts/    -> 工具脚本（持久化循环、代码地图、lint 反馈）
 docs/       -> 方法论文档
 bin/        -> npm CLI 入口（npx claude-autosolve init）
 install.py  -> Python 一键安装脚本
+tests/      -> 单元测试（pytest）
 ```
 
 ## 规则

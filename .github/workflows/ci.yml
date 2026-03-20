@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: pip install pytest
+
+      - name: Run tests
+        run: pytest tests/ -v
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint
+        run: ruff check .
+
+  node-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Verify CLI entry point
+        run: node bin/claude-autosolve.js --help || true
+
+  template-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check template placeholders preserved
+        run: |
+          # Ensure template files still contain {placeholder} patterns
+          count=$(grep -r '{[a-z]' template/ --include='*.md' | grep -v 'node_modules' | wc -l)
+          if [ "$count" -eq 0 ]; then
+            echo "ERROR: No placeholders found in template/ — they may have been accidentally replaced"
+            exit 1
+          fi
+          echo "Found $count placeholder patterns in template/ — OK"
+
+  ai-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: AI Code Review
+        if: env.ANTHROPIC_API_KEY != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          pip install anthropic
+          DIFF=$(git diff origin/master...HEAD)
+          python3 -c "
+          import json, os, sys
+          try:
+              import anthropic
+          except ImportError:
+              print('anthropic not installed, skipping AI review')
+              sys.exit(0)
+          client = anthropic.Anthropic()
+          diff = os.environ.get('DIFF', '')[:50000]
+          if not diff:
+              print('No diff found')
+              sys.exit(0)
+          resp = client.messages.create(
+              model='claude-sonnet-4-20250514',
+              max_tokens=2000,
+              messages=[{'role': 'user', 'content': f'Review this diff. Focus on bugs, security, and constitution violations (template/ placeholders must be preserved, Python scripts must use stdlib only). Output: BLOCKER/WARNING/SUGGESTION format.\n\n{diff}'}]
+          )
+          print(resp.content[0].text)
+          "

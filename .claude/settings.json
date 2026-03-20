@@ -1,5 +1,25 @@
 {
+  "permissions": {
+    "deny": [
+      "Edit(.env*)",
+      "Write(.env*)",
+      "Read(node_modules/**)",
+      "Edit(node_modules/**)",
+      "Write(node_modules/**)"
+    ]
+  },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/protect-files.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
@@ -7,6 +27,17 @@
           {
             "type": "command",
             "command": "bash scripts/lint-feedback.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/reinject-context.sh"
           }
         ]
       }
