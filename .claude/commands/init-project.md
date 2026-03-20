@@ -204,6 +204,19 @@ Each Skill follows the `_template/SKILL.md` format with **actual code examples f
 Ensure `/feature-plan-creator`, `/bug-fix`, `/deep-task`, `/upgrade` commands are in place.
 Copy `scripts/lint-feedback.sh` if Hooks are configured.
 
+### 2.8b Initialize `.claude-flow/learnings/`
+
+Create the learnings directory structure for `/deep-task` meta-learning:
+
+1. Create directory `.claude-flow/learnings/`
+2. Create `INDEX.md` with empty index:
+   ```markdown
+   # Learnings Index
+
+   _No learnings yet. Entries are created automatically by `/deep-task` Phase 5._
+   ```
+3. Add `.claude-flow/learnings/` to git tracking (it should NOT be in `.claudeignore`)
+
 ### 2.9 Generate `.claude/agents/`
 
 Generate 3 agent files with **project-specific content** (no placeholders):
@@ -291,6 +304,7 @@ The AI code review job requires `ANTHROPIC_API_KEY` — mention this in the outp
    - .claude/skills/verification/SKILL.md
    - .claude/skills/{custom}/SKILL.md (if any)
    - .claude/commands/{feature-plan-creator,bug-fix,deep-task,upgrade}.md
+   - .claude-flow/learnings/INDEX.md (meta-learning storage for /deep-task)
    - .github/workflows/ci.yml (if generated — requires ANTHROPIC_API_KEY secret for AI review)
 
    Next steps:
