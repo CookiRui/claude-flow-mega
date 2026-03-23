@@ -3,10 +3,15 @@
 claude-flow installer — One command to set up claude-flow in any project.
 
 Usage:
-    python install.py                              # Install core to current directory
-    python install.py /path/to/project             # Install core to specified directory
-    python install.py --preset unity               # Install core + Unity preset
+    python install.py                              # Install to current directory (auto-detect presets)
+    python install.py /path/to/project             # Install to specified directory
+    python install.py --preset unity               # Force Unity preset on root (skip auto-detect)
     python install.py --force                      # Overwrite existing files
+
+Auto-detection:
+    The installer scans first-level subdirectories for known project types.
+    Unity projects (containing Assets/ + ProjectSettings/) automatically get
+    the Unity preset installed, while the root gets the core framework.
 
 Remote usage (no clone needed):
     curl -sL https://raw.githubusercontent.com/<owner>/claude-flow/master/install.py | python3 - /path/to/project
@@ -18,6 +23,11 @@ import sys
 from pathlib import Path
 
 AVAILABLE_PRESETS = ["unity"]
+
+# Preset auto-detection rules: preset_name -> detector function
+PRESET_DETECTORS = {
+    "unity": lambda d: (d / "Assets").is_dir() and (d / "ProjectSettings").is_dir(),
+}
 
 # Files and directories to install
 TEMPLATE_ITEMS = [
@@ -66,6 +76,23 @@ def find_source_dir() -> Path:
     return script_dir
 
 
+def detect_presets(target: Path) -> dict:
+    """Scan first-level subdirectories and detect project types.
+
+    Returns:
+        dict mapping subdir Path -> preset name
+    """
+    detected = {}
+    for child in sorted(target.iterdir()):
+        if not child.is_dir() or child.name.startswith("."):
+            continue
+        for preset_name, detector in PRESET_DETECTORS.items():
+            if detector(child):
+                detected[child] = preset_name
+                break
+    return detected
+
+
 def copy_tree(src_dir: Path, target: Path, force: bool, installed: list, skipped: list):
     """Recursively copy all files from src_dir to target, preserving structure."""
     for src in src_dir.rglob("*"):
@@ -81,8 +108,8 @@ def copy_tree(src_dir: Path, target: Path, force: bool, installed: list, skipped
         installed.append(str(rel))
 
 
-def install(target: Path, source: Path, force: bool = False, preset: str = None):
-    """Install claude-flow files to the target directory."""
+def install_core(target: Path, source: Path, force: bool = False):
+    """Install core claude-flow files to the target directory."""
     template_dir = source / "template"
 
     if not template_dir.is_dir():
@@ -121,14 +148,25 @@ def install(target: Path, source: Path, force: bool = False, preset: str = None)
         shutil.copy2(src, dst)
         installed.append(item)
 
-    # Install preset overlay (copies on top of core, overwriting conflicts)
-    if preset:
-        preset_dir = source / "presets" / preset
-        if not preset_dir.is_dir():
-            print(f"Error: preset '{preset}' not found at {preset_dir}")
-            sys.exit(1)
-        print(f"\nApplying preset: {preset}")
-        copy_tree(preset_dir, target, force=True, installed=installed, skipped=skipped)
+    # Make shell scripts executable
+    for item in installed:
+        if item.endswith(".sh"):
+            p = target / item
+            p.chmod(p.stat().st_mode | 0o111)
+
+    return installed, skipped
+
+
+def install_preset(target: Path, source: Path, preset: str, force: bool = False):
+    """Install a preset overlay to the target directory."""
+    preset_dir = source / "presets" / preset
+    if not preset_dir.is_dir():
+        print(f"Error: preset '{preset}' not found at {preset_dir}")
+        sys.exit(1)
+
+    installed = []
+    skipped = []
+    copy_tree(preset_dir, target, force=True, installed=installed, skipped=skipped)
 
     # Make shell scripts executable
     for item in installed:
@@ -136,28 +174,21 @@ def install(target: Path, source: Path, force: bool = False, preset: str = None)
             p = target / item
             p.chmod(p.stat().st_mode | 0o111)
 
-    # Print results
-    print()
-    if installed:
-        print(f"Installed {len(installed)} files to {target}:")
-        for f in installed:
-            print(f"  + {f}")
-    if skipped:
-        print(f"\nSkipped {len(skipped)} existing files (use --force to overwrite):")
-        for f in skipped:
-            print(f"  ~ {f}")
-    if not installed and not skipped:
-        print("Nothing to install.")
-        return
+    return installed, skipped
 
-    print()
-    print("Next steps:")
-    print(f"  cd {target}")
-    print("  claude")
-    print("  > /init-project")
-    print()
-    print("This will auto-analyze your project and replace all template")
-    print("placeholders with project-specific configuration.")
+
+def print_results(label: str, installed: list, skipped: list, target: Path):
+    """Print installation results for a target."""
+    if installed:
+        print(f"  Installed {len(installed)} files to {target}:")
+        for f in installed:
+            print(f"    + {f}")
+    if skipped:
+        print(f"  Skipped {len(skipped)} existing files (use --force to overwrite):")
+        for f in skipped:
+            print(f"    ~ {f}")
+    if not installed and not skipped:
+        print(f"  Nothing to install.")
 
 
 def main():
@@ -178,7 +209,12 @@ def main():
     parser.add_argument(
         "--preset",
         choices=AVAILABLE_PRESETS,
-        help="Apply engine-specific preset (e.g., unity)",
+        help="Force a specific preset on root directory (skip auto-detect)",
+    )
+    parser.add_argument(
+        "--no-detect",
+        action="store_true",
+        help="Skip auto-detection of subdirectory project types",
     )
 
     args = parser.parse_args()
@@ -186,11 +222,40 @@ def main():
     source = find_source_dir()
 
     if not target.is_dir():
-        print(f"Error: target directory does not exist: {target}")
-        sys.exit(1)
+        target.mkdir(parents=True, exist_ok=True)
+        print(f"Created directory: {target}")
 
-    print(f"Installing claude-flow to: {target}")
-    install(target, source, force=args.force, preset=args.preset)
+    # Step 1: Install core to root
+    print(f"[core] Installing claude-flow to: {target}")
+    core_installed, core_skipped = install_core(target, source, force=args.force)
+    print_results("core", core_installed, core_skipped, target)
+
+    # Step 2: Apply preset
+    if args.preset:
+        # Explicit preset: apply to root, skip auto-detect
+        print(f"\n[preset] Applying '{args.preset}' to: {target}")
+        p_installed, p_skipped = install_preset(target, source, args.preset, force=args.force)
+        print_results(args.preset, p_installed, p_skipped, target)
+    elif not args.no_detect:
+        # Auto-detect subdirectory project types
+        detected = detect_presets(target)
+        if detected:
+            for subdir, preset_name in detected.items():
+                print(f"\n[auto-detect] Found {preset_name} project: {subdir.name}/")
+                print(f"[preset] Applying '{preset_name}' to: {subdir}")
+                p_installed, p_skipped = install_preset(subdir, source, preset_name, force=args.force)
+                print_results(preset_name, p_installed, p_skipped, subdir)
+        else:
+            print("\n[auto-detect] No known project types detected in subdirectories.")
+
+    print()
+    print("Next steps:")
+    print(f"  cd {target}")
+    print("  claude")
+    print("  > /init-project")
+    print()
+    print("This will auto-analyze your project and replace all template")
+    print("placeholders with project-specific configuration.")
 
 
 if __name__ == "__main__":
