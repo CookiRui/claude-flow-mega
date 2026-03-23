@@ -188,7 +188,7 @@ def print_results(label: str, installed: list, skipped: list, target: Path):
         for f in skipped:
             print(f"    ~ {f}")
     if not installed and not skipped:
-        print(f"  Nothing to install.")
+        print("  Nothing to install.")
 
 
 def main():
