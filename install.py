@@ -3,9 +3,10 @@
 claude-flow installer — One command to set up claude-flow in any project.
 
 Usage:
-    python install.py                     # Install to current directory
-    python install.py /path/to/project    # Install to specified directory
-    python install.py --force             # Overwrite existing files
+    python install.py                              # Install core to current directory
+    python install.py /path/to/project             # Install core to specified directory
+    python install.py --preset unity               # Install core + Unity preset
+    python install.py --force                      # Overwrite existing files
 
 Remote usage (no clone needed):
     curl -sL https://raw.githubusercontent.com/<owner>/claude-flow/master/install.py | python3 - /path/to/project
@@ -15,6 +16,8 @@ import argparse
 import shutil
 import sys
 from pathlib import Path
+
+AVAILABLE_PRESETS = ["unity"]
 
 # Files and directories to install
 TEMPLATE_ITEMS = [
@@ -63,7 +66,22 @@ def find_source_dir() -> Path:
     return script_dir
 
 
-def install(target: Path, source: Path, force: bool = False):
+def copy_tree(src_dir: Path, target: Path, force: bool, installed: list, skipped: list):
+    """Recursively copy all files from src_dir to target, preserving structure."""
+    for src in src_dir.rglob("*"):
+        if not src.is_file():
+            continue
+        rel = src.relative_to(src_dir)
+        dst = target / rel
+        if dst.exists() and not force:
+            skipped.append(str(rel))
+            continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+        installed.append(str(rel))
+
+
+def install(target: Path, source: Path, force: bool = False, preset: str = None):
     """Install claude-flow files to the target directory."""
     template_dir = source / "template"
 
@@ -102,6 +120,15 @@ def install(target: Path, source: Path, force: bool = False):
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         installed.append(item)
+
+    # Install preset overlay (copies on top of core, overwriting conflicts)
+    if preset:
+        preset_dir = source / "presets" / preset
+        if not preset_dir.is_dir():
+            print(f"Error: preset '{preset}' not found at {preset_dir}")
+            sys.exit(1)
+        print(f"\nApplying preset: {preset}")
+        copy_tree(preset_dir, target, force=True, installed=installed, skipped=skipped)
 
     # Make shell scripts executable
     for item in installed:
@@ -148,6 +175,11 @@ def main():
         action="store_true",
         help="Overwrite existing files",
     )
+    parser.add_argument(
+        "--preset",
+        choices=AVAILABLE_PRESETS,
+        help="Apply engine-specific preset (e.g., unity)",
+    )
 
     args = parser.parse_args()
     target = Path(args.target).resolve()
@@ -158,7 +190,7 @@ def main():
         sys.exit(1)
 
     print(f"Installing claude-flow to: {target}")
-    install(target, source, force=args.force)
+    install(target, source, force=args.force, preset=args.preset)
 
 
 if __name__ == "__main__":

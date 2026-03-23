@@ -67,7 +67,25 @@ function makeExecutable(filePath) {
 // Commands
 // ============================================================
 
-function init(targetDir, force) {
+const AVAILABLE_PRESETS = ["unity"];
+
+function copyTree(srcDir, targetDir, installed) {
+  if (!fs.existsSync(srcDir)) return;
+  const entries = fs.readdirSync(srcDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const src = path.join(srcDir, entry.name);
+    const dst = path.join(targetDir, entry.name);
+    if (entry.isDirectory()) {
+      copyTree(src, dst, installed);
+    } else {
+      fs.mkdirSync(path.dirname(dst), { recursive: true });
+      fs.copyFileSync(src, dst);
+      installed.push(path.relative(targetDir, dst));
+    }
+  }
+}
+
+function init(targetDir, force, preset) {
   const sourceDir = path.resolve(__dirname, "..");
   const templateDir = path.join(sourceDir, "template");
   const target = path.resolve(targetDir);
@@ -112,6 +130,17 @@ function init(targetDir, force) {
     (result === "installed" ? installed : skipped).push(item);
   }
 
+  // Apply preset overlay (always force — preset overrides core)
+  if (preset) {
+    const presetDir = path.join(sourceDir, "presets", preset);
+    if (!fs.existsSync(presetDir)) {
+      console.error(`Error: preset '${preset}' not found at ${presetDir}`);
+      process.exit(1);
+    }
+    console.log(`Applying preset: ${preset}\n`);
+    copyTree(presetDir, target, installed);
+  }
+
   // Make shell scripts executable
   for (const item of installed) {
     if (item.endsWith(".sh")) {
@@ -153,17 +182,18 @@ function printHelp() {
 claude-autosolve — Structured cognition + autonomous execution for Claude Code
 
 Usage:
-  claude-autosolve init [path] [--force]   Install to a project
+  claude-autosolve init [path] [options]   Install to a project
   claude-autosolve --help                  Show this help
 
 Options:
-  --force, -f    Overwrite existing files
-  --help, -h     Show this help message
+  --force, -f          Overwrite existing files
+  --preset <name>      Apply engine preset (${AVAILABLE_PRESETS.join(", ")})
+  --help, -h           Show this help message
 
 Examples:
-  npx claude-autosolve init                Install to current directory
-  npx claude-autosolve init ./my-project   Install to specified directory
-  npx claude-autosolve init --force        Overwrite existing files
+  npx claude-autosolve init                       Install core to current directory
+  npx claude-autosolve init --preset unity         Install core + Unity preset
+  npx claude-autosolve init ./my-project --force   Install to specified directory
 `);
 }
 
@@ -184,9 +214,20 @@ function main() {
   const command = positional[0];
   const force = flags.includes("--force") || flags.includes("-f");
 
+  // Parse --preset value
+  let preset = null;
+  const presetIdx = args.indexOf("--preset");
+  if (presetIdx !== -1 && args[presetIdx + 1]) {
+    preset = args[presetIdx + 1];
+    if (!AVAILABLE_PRESETS.includes(preset)) {
+      console.error(`Error: unknown preset '${preset}'. Available: ${AVAILABLE_PRESETS.join(", ")}`);
+      process.exit(1);
+    }
+  }
+
   if (command === "init") {
-    const targetDir = positional[1] || process.cwd();
-    init(targetDir, force);
+    const targetDir = positional.filter(p => p !== preset)[1] || process.cwd();
+    init(targetDir, force, preset);
   } else {
     console.error(`Unknown command: ${command}`);
     printHelp();

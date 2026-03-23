@@ -1,0 +1,72 @@
+name: Unity Compile Check
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '{unity-project-path}/Assets/Scripts/**'
+      - '{unity-project-path}/Packages/**'
+      - '{unity-project-path}/ProjectSettings/**'
+
+jobs:
+  compile-check:
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Persistent checkout
+        env:
+          CI_REMOTE_URL: ${{ gitea.server_url }}/${{ gitea.repository }}.git
+          CI_REF: ${{ gitea.event.pull_request.head.ref }}
+          CI_SHA: ${{ gitea.event.pull_request.head.sha }}
+          CI_FETCH_DEPTH: '1'
+          CI_LFS: 'true'
+        run: |
+          CI_WORKSPACE="{ci-workspace-path}"
+          if [[ ! -d "$CI_WORKSPACE/.git" ]]; then
+            mkdir -p "$(dirname "$CI_WORKSPACE")"
+            git clone "$CI_REMOTE_URL" "$CI_WORKSPACE"
+            cd "$CI_WORKSPACE" && git lfs install --local
+          fi
+          cd "$CI_WORKSPACE"
+          bash .claude/scripts/ci-checkout.sh
+
+      - name: Check Unity Editor not running
+        working-directory: '{ci-workspace-path}'
+        run: bash .claude/scripts/unity-check-editor.sh
+
+      - name: Compile
+        working-directory: '{ci-workspace-path}'
+        run: bash .claude/scripts/unity-compile.sh
+        timeout-minutes: 10
+
+      - name: Run EditMode Tests
+        working-directory: '{ci-workspace-path}'
+        run: bash .claude/scripts/unity-editmode-test.sh
+        timeout-minutes: 5
+
+      - name: Report success
+        if: success()
+        working-directory: '{ci-workspace-path}'
+        env:
+          GITEA_TOKEN: ${{ secrets.REPO_GITEA_TOKEN }}
+          PR_NUMBER: ${{ gitea.event.pull_request.number }}
+        run: |
+          BODY="## Compile & Test: PASSED
+
+          - [x] Unity compilation passed
+          - [x] EditMode tests passed"
+          bash .claude/scripts/gitea-api.sh comment-pr "$PR_NUMBER" "$BODY"
+
+      - name: Report failure
+        if: failure()
+        working-directory: '{ci-workspace-path}'
+        env:
+          GITEA_TOKEN: ${{ secrets.REPO_GITEA_TOKEN }}
+          PR_NUMBER: ${{ gitea.event.pull_request.number }}
+        run: |
+          BODY="## Compile & Test: FAILED
+
+          Check the build log and test results for details."
+          bash .claude/scripts/gitea-api.sh comment-pr "$PR_NUMBER" "$BODY"

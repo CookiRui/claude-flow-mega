@@ -1,0 +1,146 @@
+name: PR Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  code-review:
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Persistent checkout
+        env:
+          CI_REMOTE_URL: ${{ gitea.server_url }}/${{ gitea.repository }}.git
+          CI_REF: ${{ gitea.event.pull_request.head.ref }}
+          CI_SHA: ${{ gitea.event.pull_request.head.sha }}
+          CI_FETCH_DEPTH: '0'
+          CI_LFS: 'false'
+        run: |
+          CI_WORKSPACE="{ci-workspace-path}"
+          if [[ ! -d "$CI_WORKSPACE/.git" ]]; then
+            mkdir -p "$(dirname "$CI_WORKSPACE")"
+            git clone "$CI_REMOTE_URL" "$CI_WORKSPACE"
+            cd "$CI_WORKSPACE" && git lfs install --local
+          fi
+          cd "$CI_WORKSPACE"
+          bash .claude/scripts/ci-checkout.sh
+
+      - name: Prepare review context
+        id: context
+        working-directory: '{ci-workspace-path}'
+        run: |
+          git fetch origin ${{ gitea.event.pull_request.base.ref }}
+          BASE_REF="origin/${{ gitea.event.pull_request.base.ref }}"
+
+          # All changed files (for reference)
+          git diff --name-only "$BASE_REF"...HEAD > changed_files.txt
+
+          # Code files to review (filter by project language extensions)
+          grep -E '{review-file-extensions}' changed_files.txt > review_files.txt || true
+
+          # Full diff
+          git diff "$BASE_REF"...HEAD > pr_diff.txt
+
+      - name: Claude Code Review (headless)
+        working-directory: '{ci-workspace-path}'
+        env:
+          GITEA_TOKEN: ${{ secrets.REPO_GITEA_TOKEN }}
+          GITEA_URL: '{gitea-url}'
+          GITEA_OWNER: ${{ gitea.repository_owner }}
+          GITEA_REPO: ${{ gitea.event.repository.name }}
+          PR_NUMBER: ${{ gitea.event.pull_request.number }}
+          PYTHONUTF8: '1'
+        run: |
+          REVIEW_PROMPT=$(cat <<'PROMPT_END'
+          You are a Code Reviewer Agent for this project.
+
+          Read the REVIEW.md file at the repository root for complete review rules, then review this PR's changes.
+
+          Review dimensions:
+          A. Performance (hot-path allocations, caching, algorithmic complexity)
+          B. Maintainability (naming conventions, atomic commits, module boundaries)
+          C. Correctness & Security (null safety, lifecycle, thread safety, input validation)
+
+          ## Reading Strategy (save turns)
+          1. The "files to review" list below is pre-filtered to code files — Read each one
+          2. .meta / .json / .unity scene files do not need logic review unless you suspect .meta is missing
+          3. Use Glob to understand directory structure, then selectively deep-read
+          4. Batch multiple Read calls in a single response for efficiency
+
+          Read the full source files (not just the diff) to understand context before reviewing.
+          Output format must strictly follow the Review Output Format defined in REVIEW.md.
+          Final verdict: APPROVE or REQUEST_CHANGES.
+          PROMPT_END
+          )
+
+          FILES=$(cat review_files.txt)
+          ALL_FILES=$(cat changed_files.txt)
+
+          CLAUDE_STDERR=$(mktemp)
+          set +e
+          REVIEW_RESULT=$(claude -p \
+            "${REVIEW_PROMPT}
+
+          Files to review:
+          ${FILES}
+
+          All changed files (including assets, for reference):
+          ${ALL_FILES}
+
+          Read REVIEW.md first, then read each file to review, then output the review report." \
+            --allowedTools "Read,Glob,Grep" \
+            --max-turns 45 \
+            --output-format text \
+            2>"$CLAUDE_STDERR")
+          CLAUDE_EXIT=$?
+          set -e
+
+          # Diagnostics
+          echo "=== Claude Review Diagnostics ==="
+          echo "Exit code: $CLAUDE_EXIT"
+          echo "Output length: ${#REVIEW_RESULT} chars"
+          echo "Output preview: ${REVIEW_RESULT:0:200}"
+          echo "Stderr (last 20 lines):"
+          tail -20 "$CLAUDE_STDERR" 2>/dev/null || true
+          rm -f "$CLAUDE_STDERR"
+          echo "================================="
+
+          # Output validation (4-layer check)
+          REVIEW_FAILED=""
+          FAIL_REASON=""
+
+          if [[ $CLAUDE_EXIT -ne 0 ]]; then
+            REVIEW_FAILED=1
+            FAIL_REASON="Claude exited with code $CLAUDE_EXIT"
+          elif [[ -z "$REVIEW_RESULT" ]]; then
+            REVIEW_FAILED=1
+            FAIL_REASON="Claude output is empty"
+          elif echo "$REVIEW_RESULT" | grep -qiE "Reached max turns|Error:"; then
+            REVIEW_FAILED=1
+            FAIL_REASON="Claude output contains error indicators"
+          elif [[ ${#REVIEW_RESULT} -lt 200 ]]; then
+            REVIEW_FAILED=1
+            FAIL_REASON="Claude output is abnormally short (${#REVIEW_RESULT} chars)"
+          fi
+
+          if [[ -n "$REVIEW_FAILED" ]]; then
+            echo "WARNING: Review validation failed — ${FAIL_REASON}"
+            FALLBACK_BODY="**Code Review Agent encountered an issue**
+
+          **Reason**: ${FAIL_REASON}
+
+          **Raw output excerpt** (first 500 chars):
+          \`\`\`
+          ${REVIEW_RESULT:0:500}
+          \`\`\`
+
+          Please review this PR manually."
+            bash .claude/scripts/gitea-api.sh comment-pr "$PR_NUMBER" "$FALLBACK_BODY"
+            exit 0
+          fi
+
+          EVENT="COMMENT"
+          bash .claude/scripts/gitea-api.sh review-pr "$PR_NUMBER" "$REVIEW_RESULT" "$EVENT"

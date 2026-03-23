@@ -1,0 +1,19 @@
+{
+    "name": "{root-namespace}.Tools.Editor",
+    "rootNamespace": "{root-namespace}.Tools",
+    "references": [
+        "Newtonsoft.Json",
+        "{root-namespace}.Gameplay"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
