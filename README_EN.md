@@ -18,6 +18,7 @@ Two complementary systems that transform Claude Code from "starting from scratch
 - Protective Hooks (file protection + post-compact context recovery) + deny permission templates
 - CI/CD template (GitHub Actions build/test + AI code review)
 - Code review standards template (REVIEW.md, 3 dimensions × 3 severity levels)
+- **Engine Preset System**: `--preset unity` overlays full Unity automation (batch mode scripts, AutoTest framework, C# runtime)
 - Methodology distilled from real projects with 100+ config files
 
 ---
@@ -28,17 +29,20 @@ Two complementary systems that transform Claude Code from "starting from scratch
 
 ```bash
 # Option A: npx (recommended)
-npx claude-autosolve init                    # Install to current directory
-npx claude-autosolve init /path/to/project   # Install to specific directory
-npx claude-autosolve init --force            # Overwrite existing files
+npx claude-autosolve init                              # Install core to current directory
+npx claude-autosolve init --preset unity               # Install core + Unity preset
+npx claude-autosolve init /path/to/project --force     # Install to specific directory, force overwrite
 
 # Option B: Python
 git clone https://github.com/CookiRui/claude-flow.git
 cd claude-flow
-python install.py /path/to/your-project
+python install.py /path/to/your-project                # Core only
+python install.py /path/to/your-project --preset unity  # Core + Unity
 ```
 
 Existing files won't be overwritten unless you pass `--force`.
+
+**Available Presets**: `unity` (more engine presets planned)
 
 ### 2. Let AI auto-configure
 
@@ -96,40 +100,39 @@ python scripts/persistent-solve.py "Refactor the entire data layer" --max-budget
 
 ---
 
-## Template Structure
+## Project Structure
 
 ```
-template/
+template/                              # Core template (installed for all projects)
 ├── CLAUDE.md                          # Root entry: architecture overview
-├── REVIEW.md                          # Code review standards (3 dimensions × 3 severity levels)
-├── .claudeignore                      # AI ignore file config
-├── .github/
-│   └── workflows/
-│       └── ci.yml                     # CI/CD template (build/test + AI code review)
+├── REVIEW.md                          # Code review standards (3 dimensions × 3 levels)
+├── .claudeignore                      # AI ignore config
+├── .github/workflows/ci.yml           # CI/CD template (build/test + AI review)
 └── .claude/
-    ├── constitution.md                # Constitution template (4-7 core constraints + enforcement)
-    ├── settings.json                  # Pre-configured Hooks (lint + file protection + context injection) + deny permissions
-    ├── agents/
-    │   ├── feature-builder.md         # Agent: end-to-end feature implementation (worktree + TDD + PR)
-    │   ├── code-reviewer.md           # Agent: read-only code review (structured report)
-    │   └── test-writer.md             # Agent: adversarial test writing (boundary/stress/concurrency)
-    ├── hooks/
-    │   ├── protect-files.sh           # Hook: edit protection (hard block + soft warning)
-    │   └── reinject-context.sh        # Hook: auto-restore context after compact
-    ├── rules/
-    │   ├── coding-style.md            # Coding style rules template
-    │   ├── git-workflow.md            # Git workflow rules (commit format/branch naming/atomic commits)
-    │   └── security.md               # Security rules (secrets/input validation/dependency safety)
-    ├── skills/
-    │   ├── _template/                 # Skill template
-    │   ├── tdd/SKILL.md               # Built-in: TDD (enforced via constitution)
-    │   └── verification/SKILL.md      # Built-in: Pre-completion verification checklist
-    └── commands/
-        ├── init-project.md            # AI auto-analyze and generate configs
-        ├── feature-plan-creator.md    # Requirements → Design → Micro-task breakdown
-        ├── bug-fix.md                 # Bug diagnosis → Fix → Learning capture
-        ├── deep-task.md              # 8-layer autonomous engine (DAG + Parallel Agents + Verification)
-        └── upgrade.md               # Upgrade claude-flow templates to latest version
+    ├── constitution.md                # Constitution template (4-7 constraints + enforcement)
+    ├── settings.json                  # Pre-configured Hooks + deny permissions
+    ├── agents/                        # 3 Agents (feature builder / code reviewer / test writer)
+    ├── hooks/                         # File protection + post-compact context recovery
+    ├── rules/                         # Coding style + Git workflow + Security
+    ├── skills/                        # TDD + Verification + Skill template
+    └── commands/                      # init-project / deep-task / bug-fix / ...
+
+presets/                               # Engine-specific overlay layers
+└── unity/                             # Unity preset (installed with --preset unity)
+    ├── .claude/
+    │   ├── scripts/                   # 8 batch mode scripts (compile/test/asset ops)
+    │   ├── rules/                     # unity-scripts / unity-assets / cli-tools
+    │   ├── hooks/                     # validate-bash / validate-meta-staged
+    │   ├── agents/                    # unity-dev / git-ops + updated feature-builder/test-writer
+    │   └── skills/autotest/           # AutoTest framework usage guide
+    ├── unity-runtime/                 # C# runtime (26 files + 3 asmdefs)
+    │   ├── Scripts/Gameplay/AutoTest/ # IInputProvider + TestInputProvider + AutoTestBridge
+    │   ├── Scripts/Tools/Editor/      # BatchMode + AutoTest Core/Runner/Results + UnityOps
+    │   └── Scripts/Tests/Editor/      # SanityTests + asmdef
+    ├── .gitea/workflows/              # Gitea CI (compile + test + AI review)
+    ├── REVIEW.md                      # Enhanced with Unity performance rules
+    ├── .gitignore                     # Unity-specific
+    └── .gitattributes                 # LFS patterns (textures/models/audio)
 ```
 
 ---
@@ -173,6 +176,29 @@ Extracts class/function/method definitions, ranks by reference count. Run before
 ### lint-feedback.sh — Bidirectional Lint/Test Feedback Loop
 
 Configured as Claude Code Hook: Edit → Auto-lint → Failure → Error feedback to AI → AI auto-fixes → Re-lint → Pass. Supports ESLint / Ruff / dotnet format / golangci-lint / Clippy.
+
+---
+
+## Unity Preset
+
+`--preset unity` overlays a complete Unity automated testing pipeline on top of the core:
+
+```bash
+npx claude-autosolve init --preset unity
+```
+
+| Category | Contents |
+|----------|----------|
+| **Batch Mode Scripts** | Compile, EditMode tests, PlayMode/AutoTest, asset operations, log parsing |
+| **C# Runtime** | AutoTest framework (TestCase/TestAction/TestCondition/TypeRegistry) + IInputProvider deterministic input injection + BatchPlayModeRunner + UnityOps |
+| **Unity Rules** | C# naming, .meta safety, zero hot-path allocations, CompareTag, component caching |
+| **Unity Hooks** | validate-bash (block rm Library etc.), validate-meta-staged (.meta commit integrity) |
+| **Unity Agents** | unity-dev (C# development), git-ops (Git+LFS+.meta) |
+| **AutoTest Skill** | IInputProvider pattern, JSON test case format, 3-phase execution lifecycle |
+| **CI/CD** | Gitea Actions (compile check + EditMode tests + Claude Code PR review) |
+| **REVIEW.md** | PERF-U1~U10 mobile performance rules + Unity/C# tech checklist |
+
+All scripts use `{placeholder}` templating — `/init-project` auto-detects Unity projects and fills in values.
 
 ---
 
