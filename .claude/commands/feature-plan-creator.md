@@ -23,6 +23,30 @@ Output `Docs/{feature-name}/plan.md`:
 6. **Test Plan** — TDD cycle list (see granularity constraints below)
 7. **Constitution Compliance Audit** — Check against constitution article by article
 
+## Phase 2.5: Plan Review Loop (Automated)
+
+Before proceeding to task breakdown, validate the plan quality using a subagent review:
+
+1. **Dispatch a plan-review subagent** (model: sonnet) with the generated plan. The reviewer checks:
+   - **Architecture soundness** — Does the design follow existing patterns? Are module boundaries respected?
+   - **Boundary condition coverage** — Are edge cases, error paths, and failure modes addressed?
+   - **Granularity** — Are modules small enough to implement in TDD cycles? Are there hidden dependencies?
+   - **Constitution compliance** — Does the plan violate any constitution article?
+   - **Completeness** — Are there gaps between the plan and the requirements?
+
+2. **Review output format:**
+   ```
+   PLAN_APPROVED — no issues found
+   PLAN_NEEDS_REVISION — {list of specific issues to fix}
+   ```
+
+3. **Iteration rules:**
+   - If `PLAN_NEEDS_REVISION`: revise the plan to address all issues, then re-submit for review
+   - **Maximum 3 iterations** — if still not approved after 3 rounds, present the plan + unresolved concerns to the user via AskUserQuestion
+   - If `PLAN_APPROVED`: proceed to Phase 3
+
+---
+
 ## Phase 3: Task Breakdown
 
 Break the plan into a **micro-task list**. Each task must satisfy:

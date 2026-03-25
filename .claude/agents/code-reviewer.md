@@ -54,10 +54,13 @@ Evaluate the diff against all dimensions below. For each finding, record:
 - Are external inputs validated before use?
 - Does the implementation match what the tests actually assert?
 
-### Dimension 2: Performance
+### Dimension 2: Performance (Code Tier Aware)
 
-Not a primary concern for this project. Only flag if changes touch `persistent-solve.py` parallel execution or `repo-map.py` file scanning:
+Apply Code Tier rules:
+- **Production tier** (`scripts/persistent-solve.py`, `scripts/repo-map.py`): Full severity
+- **Tooling tier** (`scripts/lint-feedback.sh`, `install.py`, `tests/`): Downgrade performance findings to SUGGESTION
 
+For Production-tier files:
 - Unbounded thread creation in ThreadPoolExecutor
 - O(n^2) file scanning where linear is possible
 - Unnecessary re-reading of files in loops

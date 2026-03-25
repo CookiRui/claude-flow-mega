@@ -254,7 +254,11 @@ Copy `.claude/hooks/protect-files.sh` and `.claude/hooks/reinject-context.sh` fr
 
 Generate a project-specific code review standards file based on Phase 1 analysis:
 
-- **Dimension A (Performance)**: Fill rules based on detected performance constraints (from constitution). If no performance-critical paths, keep minimal.
+- **Code Tiers**: Classify project directories into **Production** and **Tooling** tiers.
+  - Production: core business logic, user-facing code (e.g., `src/`, `lib/`, `app/`)
+  - Tooling: scripts, tests, dev tools, CI config (e.g., `tests/`, `scripts/`, `.github/`)
+  - Fill `{production-paths}` and `{tooling-paths}` placeholders accordingly
+- **Dimension A (Performance)**: Fill rules based on detected performance constraints (from constitution). Performance rules apply at full severity only in Production tier; they are downgraded to SUGGESTION in Tooling tier.
 - **Dimension B (Maintainability)**: Fill with project's naming conventions, module boundaries, commit standards (from git-workflow rules).
 - **Dimension C (Correctness & Security)**: Fill with project-specific validation rules, dependency manifest path, issue tracker URL.
 - **Technology checklist**: Add language/framework-specific checks (e.g., React: "no direct DOM manipulation", Go: "errors must be checked", Python: "no bare except").

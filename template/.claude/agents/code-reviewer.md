@@ -54,10 +54,14 @@ Evaluate the diff against all dimensions below. For each finding, record:
 - Are external inputs validated before use?
 - Does the implementation match what the tests actually assert (test validity check)?
 
-### Dimension 2: Performance
+### Dimension 2: Performance (Code Tier Aware)
 
-Apply only to paths that are on the {performance-critical-path} (e.g., hot loops, request handlers, render loops). For cold paths, skip performance findings below WARNING.
+Check which **Code Tier** the file belongs to (see `REVIEW.md` → Code Tiers):
 
+- **Production tier**: Apply performance rules at full severity (BLOCKER/WARNING as defined in REVIEW.md)
+- **Tooling tier**: Downgrade all performance findings to SUGGESTION
+
+For Production-tier paths:
 - Are there O(n²) or worse algorithms where a linear solution exists?
 - Are there unnecessary allocations inside loops?
 - Are expensive operations (I/O, DB queries, serialization) called more times than needed?

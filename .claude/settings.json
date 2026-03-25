@@ -3,9 +3,15 @@
     "deny": [
       "Edit(.env*)",
       "Write(.env*)",
+      "Edit(.git/**)",
+      "Write(.git/**)",
       "Read(node_modules/**)",
       "Edit(node_modules/**)",
-      "Write(node_modules/**)"
+      "Write(node_modules/**)",
+      "Edit(__pycache__/**)",
+      "Write(__pycache__/**)",
+      "Edit(.pytest_cache/**)",
+      "Write(.pytest_cache/**)"
     ]
   },
   "hooks": {
@@ -16,6 +22,15 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/protect-files.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/validate-bash.sh"
           }
         ]
       }

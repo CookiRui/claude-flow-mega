@@ -6,8 +6,12 @@
       "Write(node_modules/**)",
       "Edit(.env*)",
       "Write(.env*)",
+      "Edit(.git/**)",
+      "Write(.git/**)",
       "Edit({protected-build-dir}/**)",
-      "Write({protected-build-dir}/**)"
+      "Write({protected-build-dir}/**)",
+      "Edit({protected-cache-dir}/**)",
+      "Write({protected-cache-dir}/**)"
     ]
   },
   "hooks": {
@@ -18,6 +22,15 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/protect-files.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/validate-bash.sh"
           }
         ]
       }

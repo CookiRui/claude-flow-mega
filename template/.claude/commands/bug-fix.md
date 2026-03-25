@@ -5,18 +5,52 @@ argument-hint: <bug description>
 
 # /bug-fix
 
-## Phase 1: Diagnosis (NO code writing)
+## Phase 1: Diagnosis — Hypothesis-Verification Loop (NO code writing)
+
+### Step 1: Collect Evidence
 
 1. Understand bug symptoms (user description + logs + repro steps). If info insufficient, use AskUserQuestion
 2. Locate relevant code (search → read → understand call chain → load related Skills)
-3. Output root cause analysis:
+3. **Gather observable facts** — do NOT jump to conclusions. Record:
+   - What is the actual behavior?
+   - What is the expected behavior?
+   - Under what conditions does it reproduce?
+   - What has changed recently? (`git log --oneline -10`)
+
+### Step 2: Form Hypotheses
+
+Based on evidence, form **2-3 ranked hypotheses** (most likely first):
+
+```
+Hypothesis 1 (most likely): {description} — because {evidence}
+Hypothesis 2: {description} — because {evidence}
+Hypothesis 3: {description} — because {evidence}
+```
+
+### Step 3: Verify Hypotheses
+
+For each hypothesis, starting with the most likely:
+1. **Design a verification step** — a read, grep, or trace that would confirm or eliminate this hypothesis
+2. **Execute** — run the verification (read code, check logs, trace data flow)
+3. **Record result** — CONFIRMED / ELIMINATED / INCONCLUSIVE
+4. If CONFIRMED → proceed to root cause analysis. If all ELIMINATED → go back to Step 2 with new evidence.
+
+**Anti-pattern:** Never skip to "I think it's X, let me fix it" without verification. Evidence first.
+
+### Step 4: Root Cause Analysis
+
+Output:
    - **Symptom**: What the user sees
+   - **Verified hypothesis**: Which hypothesis was confirmed and how
    - **Direct cause**: Which code causes it
    - **Root cause**: Why (knowledge gap / pattern violation / missing check / timing / data / config / third-party)
    - **Impact scope**: Where else similar issues may exist
    - **Fix proposal**: Minimal change — what to change and why
    - **Solidification needed?**: Whether to add Rule / update Skill / write Memory
-4. **Must wait for user confirmation via AskUserQuestion — never skip this**
+
+### Step 5: Confirm with user
+
+**Must wait for user confirmation via AskUserQuestion — never skip this**
 
 ## Phase 2: Fix (after user confirms)
 

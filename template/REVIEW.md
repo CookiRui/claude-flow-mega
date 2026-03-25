@@ -15,6 +15,27 @@
 
 ---
 
+## Code Tiers
+
+Not all code deserves equal scrutiny. Apply review rules at the tier-appropriate severity.
+
+| Tier | Paths | Description |
+|------|-------|-------------|
+| **Production** | `{production-paths}` | Core business logic, user-facing code — highest standards |
+| **Tooling** | `{tooling-paths}` | Scripts, tests, dev tools, CI — relaxed performance rules |
+
+### Tier Severity Override
+
+| Rule Category | Production Tier | Tooling Tier |
+|---------------|----------------|--------------|
+| **A: Performance** | BLOCKER/WARNING as defined | All downgrade to **SUGGESTION** |
+| **B: Maintainability** | WARNING/SUGGESTION as defined | **Unchanged** |
+| **C: Correctness & Security** | BLOCKER/WARNING as defined | **Unchanged** |
+
+> **Rationale:** Tooling code is executed infrequently and by developers only. Performance rules that are critical in production (e.g., no allocations in hot loops) are distracting noise in test/script code. However, correctness and maintainability matter everywhere.
+
+---
+
 ## Dimension A: Performance
 
 | ID | Severity | Rule | Example / Notes |

@@ -66,9 +66,46 @@ All implementation work happens inside this worktree. The main working tree is n
 
 ---
 
-## Phase 4: Implement (TDD)
+## Phase 4: Implement (Subagent-Driven Development)
 
-Follow the RED-GREEN-REFACTOR cycle from the `tdd` Skill for every functional behavior point.
+For each behavior point in the TDD cycle list, dispatch a **fresh subagent** to keep context isolated:
+
+### Subagent Dispatch Protocol
+
+Each sub-task is executed by a fresh Agent call with only the context it needs:
+- **Task spec** — what to build, acceptance criteria, target files
+- **Constitution constraints** — relevant articles only
+- **Existing code** — files to read before modifying (not the whole repo)
+
+### Subagent Status Protocol
+
+Each subagent must report one of these statuses:
+
+| Status | Meaning | Next Action |
+|--------|---------|-------------|
+| `DONE` | Task complete, all acceptance criteria met | Proceed to next task |
+| `DONE_WITH_CONCERNS` | Complete but found issues worth noting | Review concerns, then proceed |
+| `BLOCKED` | Cannot complete — dependency missing or ambiguity | Resolve blocker, re-dispatch |
+| `NEEDS_CONTEXT` | Needs information not provided in the spec | Provide context, re-dispatch |
+
+### Model Selection
+
+Choose the subagent model based on task complexity:
+
+| Complexity | Model | Examples |
+|------------|-------|----------|
+| Mechanical (C:1-2) | haiku | Config changes, simple CRUD, rename |
+| Integration (C:3-4) | sonnet | Multi-file changes, API wiring, test writing |
+| Architecture (C:5) | opus | Design decisions, complex algorithms, cross-module refactors |
+
+### Two-Stage Review
+
+After each subagent completes, run a **two-stage review**:
+
+1. **Spec Compliance Review** — Does the output match the task spec? Are acceptance criteria met? (quick, use haiku)
+2. **Code Quality Review** — Is the code correct, maintainable, and constitution-compliant? (use sonnet)
+
+If either review fails: re-dispatch the subagent with review feedback.
 
 Build commands for this project:
 - **Build**: N/A (no build step)
