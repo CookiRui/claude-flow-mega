@@ -1,6 +1,6 @@
 {
   "name": "claude-autosolve",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Structured project cognition + autonomous execution framework for Claude Code. 4-layer config + 8-layer engine + atomic DAG scheduler.",
   "bin": {
     "claude-autosolve": "bin/claude-autosolve.js"
