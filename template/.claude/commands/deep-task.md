@@ -72,8 +72,8 @@ Output your classification and reasoning.
 
 5. **Read historical learnings**: Read `.claude-flow/learnings/INDEX.md` if it exists.
    - Identify the domain(s) relevant to this task, read only those domain files (not all)
-   - Extract pitfalls relevant to this task and add as constraints to Phase 2 ("avoid X because it failed before")
-   - If a previous task of the same type succeeded, reuse its strategy as the default approach
+   - Extract **Avoid** entries relevant to this task and add as constraints to Phase 2 ("avoid X because it failed before")
+   - Extract **Strategy** entries from successful tasks (Result: ✅) and reuse as the default approach
    - **Pruning** (run if any domain file has >20 entries or last_pruned >30 days ago):
      - Remove entries with score ≤ 1
      - Merge entries with score 2 that share the same pitfall into a single consolidated entry
@@ -193,6 +193,17 @@ Launch **multiple Agent calls in a single message** for parallel execution.
 - 3 consecutive failures on one task → escalate:
   - Confidence 0.3-0.5 → `AskUserQuestion` with 2-3 options
   - Confidence < 0.3 → save WIP, present full handoff
+
+### Stagnation Detection
+
+When a sub-task's L1 check fails **twice consecutively with the same error type** (e.g., same test failing, same compile error):
+
+1. **Stop** current strategy immediately — do not retry a third time
+2. **Consult learnings**: read `.claude-flow/learnings/{domain}.md`, check "Avoid" entries for known dead ends
+3. **Switch direction**: choose a different approach that is NOT listed in the learnings' avoid list
+4. **If no alternative is apparent** → escalate to user with: what was tried, why it failed, and 2-3 alternative directions to consider
+
+This catches the pattern where an Agent loops on the same broken approach. The key signal is **error type repetition**, not just failure count.
 
 ### Failure Salvage
 
@@ -427,13 +438,19 @@ last_pruned: {date}
 
 ### {date} — {goal summary} [score: {1-5}]
 
-- **Complexity**: estimated {X}, actual {Y}
-- **Strategies that worked**: {list}
-- **Strategies that failed**: {list with reasons}
-- **Pitfalls discovered**: {list}
+- **Result**: ✅ pass / ⚠️ partial / ❌ fail — {one-line outcome summary}
+- **Deviation**: estimated {X} → actual {Y} — {why the estimate was off, if applicable}
+- **Strategy**: {what approach was used and whether it worked}
+- **Avoid**: {what was tried and failed — future tasks in this domain should skip these}
 - **Verification notes**: L{N} was {sufficient/insufficient}, because {reason}
 - **Cost**: ~${total} ({N} agent calls)
 ```
+
+The four core fields (Result / Deviation / Strategy / Avoid) are designed for quick scanning:
+- **Result** — did it work? Enables pass/fail filtering when reviewing history
+- **Deviation** — was the estimate accurate? Helps calibrate future Phase 0 classifications
+- **Strategy** — what to reuse next time
+- **Avoid** — what NOT to try next time (consulted by Stagnation Detection in Phase 3)
 
 **Relevance score** (1-5): how likely this learning applies to future tasks in the same domain.
 - 5: Universal pitfall (e.g., "never do X in this module")
