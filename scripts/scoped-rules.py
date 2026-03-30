@@ -36,7 +36,6 @@ import json
 import os
 import subprocess
 import sys
-from pathlib import Path
 
 
 # ============================================================
@@ -219,10 +218,6 @@ def merge_rules(root_rules: list, module_rules: list) -> list:
 
     Returns merged list of rule dicts.
     """
-    # Index module rules by filename
-    module_by_file = {r["file"]: r for r in module_rules}
-    root_by_file = {r["file"]: r for r in root_rules}
-
     merged = []
     seen_files = set()
 
@@ -396,7 +391,7 @@ def main():
 
     if not os.path.isdir(root):
         print(f"Error: {root} is not a valid directory", file=sys.stderr)
-        print(f"Usage: python scripts/scoped-rules.py --root /path/to/project", file=sys.stderr)
+        print("Usage: python scripts/scoped-rules.py --root /path/to/project", file=sys.stderr)
         sys.exit(1)
 
     # --- List modules mode ---

@@ -40,6 +40,7 @@ const TEMPLATE_ITEMS = [
 const SCRIPT_ITEMS = [
   "scripts/persistent-solve.py",
   "scripts/repo-map.py",
+  "scripts/scoped-rules.py",
   "scripts/lint-feedback.sh",
 ];
 

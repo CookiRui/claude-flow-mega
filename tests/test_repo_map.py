@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Tests for repo-map.py layered code map."""
 
-import json
 import os
 import sys
 import tempfile

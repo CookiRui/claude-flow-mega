@@ -14,7 +14,7 @@
 **特点**：
 - 一条命令自动分析项目并生成所有配置，无需手动填写
 - 3 个专业化 Agent 模板（功能实现、代码审查、对抗测试）
-- 3 个实用工具脚本（持久化循环、代码地图、Lint 反馈闭环）
+- 4 个实用工具脚本（持久化循环、分层代码地图、模块级规则加载、Lint 反馈闭环）
 - 防护 Hooks（文件保护 + compact 后上下文恢复）+ deny 权限模板
 - CI/CD 模板（GitHub Actions 构建/测试 + AI 代码审查）
 - 代码审查标准模板（REVIEW.md，3 维度 × 3 级别）
@@ -163,15 +163,43 @@ python scripts/persistent-solve.py "目标" --max-rounds 5 --max-time 3600
 
 > **何时用 `/deep-task` vs `persistent-solve.py`**：大多数 L 级任务，`/deep-task` 在单会话内就能完成（并行 Agent + 模型路由）。只有真正超出单会话预算的 XL 级任务才需要 `persistent-solve.py`。
 
-### repo-map.py — 代码地图生成器
+### repo-map.py — 分层代码地图生成器
 
 ```bash
-python scripts/repo-map.py /path/to/project              # 输出 .repo-map.json
-python scripts/repo-map.py /path/to/project --format md   # 输出 .repo-map.md
-python scripts/repo-map.py /path/to/project --no-refs     # 大项目跳过引用计数
+# 分层模式（默认）：生成 L0 全局概览 + L1 模块级符号索引
+python scripts/repo-map.py /path/to/project
+python scripts/repo-map.py /path/to/project --incremental   # 增量更新（基于 git diff）
+python scripts/repo-map.py /path/to/project --level L0      # 仅生成 L0
+python scripts/repo-map.py /path/to/project --level L1 --module auth  # 仅生成某模块 L1
+python scripts/repo-map.py /path/to/project --list-modules   # 列出检测到的模块
+
+# 传统平面模式（向后兼容）
+python scripts/repo-map.py /path/to/project --format md      # 输出 .repo-map.md
+python scripts/repo-map.py /path/to/project --format json     # 输出 .repo-map.json
 ```
 
-提取类/函数/方法定义，排序引用关系。在大型任务前生成，减少 50-70% 搜索 token。
+**分层输出**（`.repo-map/` 目录）：
+- **L0**（`L0.md`）— 全局概览：模块表格 + 跨模块依赖 + 关键入口点（<100 行，始终注入上下文）
+- **L1**（`modules/{name}.md`）— 模块级符号索引：按文件分组的类/函数/方法（<200 行，按需加载）
+- **L2** — 按需展开：直接读取源文件（无需生成）
+
+**增量更新**：`--incremental` 基于 git diff 仅重扫变更文件，与缓存合并，大幅减少重建时间。
+**模块自动检测**：从顶级目录自动检测模块，支持 `config.json` 手动配置。
+
+### scoped-rules.py — 模块级作用域规则加载器
+
+```bash
+python scripts/scoped-rules.py --root /path/to/project --diff          # 基于 git diff 自动加载
+python scripts/scoped-rules.py --root /path/to/project --changed "src/auth/login.py"  # 指定文件
+python scripts/scoped-rules.py --root /path/to/project --list-modules  # 列出模块
+python scripts/scoped-rules.py --root /path/to/project --diff --format md  # Markdown 输出
+```
+
+根据 git diff 影响范围，自动加载相关模块的 constitution 和 rules。支持：
+- **模块检测**：包含 `.claude/` 子目录的目录视为独立模块
+- **继承机制**：模块 constitution 继承根级约束，可添加模块特有规则
+- **优先级**：同名规则文件模块级覆盖根级，不同名的规则同时加载
+- **输出格式**：JSON（默认，供程序消费）或 Markdown（供人阅读）
 
 ### lint-feedback.sh — 双向 Lint/Test 反馈闭环
 
