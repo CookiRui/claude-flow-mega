@@ -3,30 +3,19 @@ name: CI
 on:
   push:
     branches: [master]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+      - '.repo-map/**'
   pull_request:
     branches: [master]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.11", "3.12"]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install test dependencies
-        run: pip install pytest
-
-      - name: Run tests
-        run: pytest tests/ -v
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -43,19 +32,6 @@ jobs:
       - name: Lint
         run: ruff check .
 
-  node-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-
-      - name: Verify CLI entry point
-        run: node bin/claude-autosolve.js --help || true
-
   template-check:
     runs-on: ubuntu-latest
     steps:
@@ -70,6 +46,40 @@ jobs:
             exit 1
           fi
           echo "Found $count placeholder patterns in template/ — OK"
+
+  test:
+    needs: [lint, template-check]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: pip install pytest pytest-cov
+
+      - name: Run tests
+        run: pytest tests/ -v --cov=scripts --cov-report=term-missing
+
+  node-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Verify CLI entry point
+        run: node bin/claude-autosolve.js --help || true
 
   ai-review:
     if: github.event_name == 'pull_request'
@@ -104,7 +114,7 @@ jobs:
           resp = client.messages.create(
               model='claude-sonnet-4-20250514',
               max_tokens=2000,
-              messages=[{'role': 'user', 'content': f'Review this diff. Focus on bugs, security, and constitution violations (template/ placeholders must be preserved, Python scripts must use stdlib only). Output: BLOCKER/WARNING/SUGGESTION format.\n\n{diff}'}]
+              messages=[{'role': 'user', 'content': f'Review this diff for a Python/Node.js CLI framework.\n\nSecurity checklist:\n- No hardcoded secrets/tokens\n- No shell=True with string interpolation\n- Input validation on all CLI arguments\n- No external dependencies in scripts/ (stdlib only)\n\nConstitution checklist:\n- template/ files must preserve {{placeholder}} patterns\n- Python scripts use stdlib only (no pip dependencies)\n- README.md matches template/ structure\n\nOutput format: BLOCKER / WARNING / SUGGESTION with file:line references.\n\n{diff}'}]
           )
           print(resp.content[0].text)
           "

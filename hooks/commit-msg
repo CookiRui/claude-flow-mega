@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# Git commit-msg hook for claude-flow
+# Validates commit message follows the project convention.
+#
+# Allowed formats:
+#   type(scope): description
+#   type: description
+#   checkpoint: description
+#   Merge ...
+#
+# Allowed types: feat, fix, refactor, docs, chore, test, style, perf
+
+commit_msg_file="$1"
+commit_msg="$(head -1 "$commit_msg_file")"
+
+# Skip empty messages (git will abort on its own)
+if [ -z "$commit_msg" ]; then
+    exit 0
+fi
+
+# Pattern 1: conventional commit — type(scope): description
+# Pattern 2: conventional commit — type: description
+# Pattern 3: checkpoint commit
+# Pattern 4: merge commit
+valid=0
+
+echo "$commit_msg" | grep -qE '^(feat|fix|refactor|docs|chore|test|style|perf)(\(.+\))?: .+' && valid=1
+echo "$commit_msg" | grep -qE '^checkpoint: .+' && valid=1
+echo "$commit_msg" | grep -qE '^Merge ' && valid=1
+
+if [ "$valid" -eq 0 ]; then
+    echo ""
+    echo "ERROR: Invalid commit message format."
+    echo ""
+    echo "  Your message:  $commit_msg"
+    echo ""
+    echo "  Expected format:"
+    echo "    type(scope): description"
+    echo "    type: description"
+    echo "    checkpoint: description"
+    echo ""
+    echo "  Allowed types: feat, fix, refactor, docs, chore, test, style, perf"
+    echo ""
+    echo "  Examples:"
+    echo "    feat: add git hook validation scripts"
+    echo "    fix(install): handle missing config directory"
+    echo "    docs: update README with hook setup instructions"
+    echo "    checkpoint: T3 pre-commit hook passes all tests"
+    echo ""
+    exit 1
+fi
+
+exit 0

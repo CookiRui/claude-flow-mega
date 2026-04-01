@@ -20,17 +20,59 @@ on:
     branches:
       - main
       - master
+    # Uncomment to skip CI for docs-only changes:
+    # paths-ignore:
+    #   - 'docs/**'
+    #   - '*.md'
   pull_request:
     branches:
       - main
       - master
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ─────────────────────────────────────────────
-  # Job 1: Build, Lint & Test
+  # Job 1: Lint (fast, runs first)
   # ─────────────────────────────────────────────
-  build:
-    name: Build & Test
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Replace {language-runtime} with the appropriate setup action, e.g.:
+      #   actions/setup-node  → Node.js
+      #   actions/setup-python → Python
+      #   actions/setup-go    → Go
+      #   actions/setup-java  → Java (with distribution: 'temurin')
+      - name: Set up {language-runtime}
+        uses: {language-runtime}@v4
+        with:
+          # Replace {language-version} with the version string your project requires.
+          # Examples: "20" (Node LTS), "3.11" (Python), "1.21" (Go)
+          node-version: "{language-version}"   # rename key to match your runtime (e.g., python-version, go-version)
+
+      - name: Install dependencies
+        # Replace {install-command} with your package manager install command.
+        # Examples: "npm ci", "pip install -r requirements.txt", "go mod download"
+        run: {install-command}
+
+      - name: Lint
+        # Replace {lint-command} with your linter command.
+        # Examples: "npm run lint", "ruff check .", "golangci-lint run", "eslint ."
+        run: {lint-command}
+
+  # ─────────────────────────────────────────────
+  # Job 2: Test (runs after lint passes)
+  # ─────────────────────────────────────────────
+  test:
+    name: Test
+    needs: [lint]
     runs-on: ubuntu-latest
 
     steps:
@@ -60,18 +102,13 @@ jobs:
         # Examples: "npm run build", "python -m build", "go build ./..."
         run: {build-command}
 
-      - name: Lint
-        # Replace {lint-command} with your linter command.
-        # Examples: "npm run lint", "ruff check .", "golangci-lint run", "eslint ."
-        run: {lint-command}
-
       - name: Test
         # Replace {test-command} with your test runner command.
         # Examples: "npm test", "pytest --tb=short", "go test ./..."
         run: {test-command}
 
   # ─────────────────────────────────────────────
-  # Job 2: AI Code Review (pull_request only)
+  # Job 3: AI Code Review (pull_request only)
   # ─────────────────────────────────────────────
   # This job uses Claude Code in headless mode to review the PR diff.
   # It reads REVIEW.md (if present) for project-specific review standards,

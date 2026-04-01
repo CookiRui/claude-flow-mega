@@ -20,17 +20,59 @@ on:
     branches:
       - main
       - master
+    # 如需跳过仅文档变更的 CI，取消注释：
+    # paths-ignore:
+    #   - 'docs/**'
+    #   - '*.md'
   pull_request:
     branches:
       - main
       - master
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ─────────────────────────────────────────────
-  # 任务 1：构建、Lint 检查与测试
+  # 任务 1：Lint 检查（快速，优先执行）
   # ─────────────────────────────────────────────
-  build:
-    name: Build & Test
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 将 {language-runtime} 替换为对应的 setup action，例如：
+      #   actions/setup-node   → Node.js
+      #   actions/setup-python → Python
+      #   actions/setup-go     → Go
+      #   actions/setup-java   → Java（需设置 distribution: 'temurin'）
+      - name: Set up {language-runtime}
+        uses: {language-runtime}@v4
+        with:
+          # 将 {language-version} 替换为项目所需的版本字符串。
+          # 示例："20"（Node LTS）、"3.11"（Python）、"1.21"（Go）
+          node-version: "{language-version}"   # 根据运行时重命名此键（例：python-version、go-version）
+
+      - name: Install dependencies
+        # 将 {install-command} 替换为包管理器的安装命令。
+        # 示例："npm ci"、"pip install -r requirements.txt"、"go mod download"
+        run: {install-command}
+
+      - name: Lint
+        # 将 {lint-command} 替换为 lint 检查命令。
+        # 示例："npm run lint"、"ruff check ."、"golangci-lint run"、"eslint ."
+        run: {lint-command}
+
+  # ─────────────────────────────────────────────
+  # 任务 2：测试（Lint 通过后运行）
+  # ─────────────────────────────────────────────
+  test:
+    name: Test
+    needs: [lint]
     runs-on: ubuntu-latest
 
     steps:
@@ -60,18 +102,13 @@ jobs:
         # 示例："npm run build"、"python -m build"、"go build ./..."
         run: {build-command}
 
-      - name: Lint
-        # 将 {lint-command} 替换为 lint 检查命令。
-        # 示例："npm run lint"、"ruff check ."、"golangci-lint run"、"eslint ."
-        run: {lint-command}
-
       - name: Test
         # 将 {test-command} 替换为测试运行命令。
         # 示例："npm test"、"pytest --tb=short"、"go test ./..."
         run: {test-command}
 
   # ─────────────────────────────────────────────
-  # 任务 2：AI 代码审查（仅 pull_request 触发）
+  # 任务 3：AI 代码审查（仅 pull_request 触发）
   # ─────────────────────────────────────────────
   # 本任务使用 Claude Code 的无头模式审查 PR diff。
   # 如果存在 REVIEW.md，会读取其中的项目审查标准，

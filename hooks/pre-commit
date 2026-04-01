@@ -1,0 +1,103 @@
+#!/bin/sh
+#
+# Git pre-commit hook for claude-flow
+# Runs quality checks before allowing a commit.
+#
+# Checks:
+#   1. ruff lint (if available)
+#   2. pytest tests (if available)
+#   3. No non-stdlib imports in scripts/
+
+failed=0
+
+echo "========================================"
+echo "  pre-commit: running quality checks"
+echo "========================================"
+
+# -------------------------------------------
+# Check 1: ruff lint
+# -------------------------------------------
+echo ""
+echo "--- [1/3] Ruff lint ---"
+if command -v ruff >/dev/null 2>&1; then
+    ruff check .
+    if [ $? -ne 0 ]; then
+        echo "FAILED: ruff found lint errors."
+        failed=1
+    else
+        echo "PASSED."
+    fi
+else
+    echo "SKIPPED: ruff not installed."
+fi
+
+# -------------------------------------------
+# Check 2: pytest
+# -------------------------------------------
+echo ""
+echo "--- [2/3] Pytest ---"
+if command -v pytest >/dev/null 2>&1; then
+    if [ -d "tests" ]; then
+        pytest tests/ -q --tb=line
+        if [ $? -ne 0 ]; then
+            echo "FAILED: some tests did not pass."
+            failed=1
+        else
+            echo "PASSED."
+        fi
+    else
+        echo "SKIPPED: tests/ directory not found."
+    fi
+else
+    echo "SKIPPED: pytest not installed."
+fi
+
+# -------------------------------------------
+# Check 3: No non-stdlib imports in scripts/
+# -------------------------------------------
+echo ""
+echo "--- [3/3] Stdlib-only check (scripts/) ---"
+if [ -d "scripts" ]; then
+    # List of known non-stdlib modules that must not appear
+    offenders="click|requests|yaml|flask|django|fastapi|httpx|pydantic|rich|typer"
+    violations=""
+
+    for f in scripts/*.py; do
+        [ -f "$f" ] || continue
+        # Match lines like: import click / from click import ... / import yaml
+        match=$(grep -nE "^(import|from) ($offenders)" "$f" 2>/dev/null)
+        if [ -n "$match" ]; then
+            violations="$violations
+  $f:
+$match"
+        fi
+    done
+
+    if [ -n "$violations" ]; then
+        echo "FAILED: Non-stdlib imports found in scripts/ (Constitution §3)."
+        echo "$violations"
+        echo ""
+        echo "scripts/ must only use Python standard library modules."
+        failed=1
+    else
+        echo "PASSED."
+    fi
+else
+    echo "SKIPPED: scripts/ directory not found."
+fi
+
+# -------------------------------------------
+# Summary
+# -------------------------------------------
+echo ""
+if [ "$failed" -ne 0 ]; then
+    echo "========================================"
+    echo "  pre-commit: FAILED — commit aborted"
+    echo "========================================"
+    exit 1
+else
+    echo "========================================"
+    echo "  pre-commit: ALL CHECKS PASSED"
+    echo "========================================"
+    exit 0
+fi
