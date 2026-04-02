@@ -83,6 +83,7 @@ class RecursiveDAG:
 
     def __init__(self, tasks: list[RecursiveTask] = None):
         self.tasks = {t.id: t for t in (tasks or [])}
+        self._lock = threading.Lock()
 
     def add_task(self, task: RecursiveTask):
         self.tasks[task.id] = task
@@ -166,6 +167,25 @@ class RecursiveDAG:
             task.status = "failed"
             task.error_summary = error_summary
             task.result = result
+
+    def propagate_status(self):
+        """When all children of a parent are done, mark parent done.
+
+        Uses threading.Lock to prevent duplicate triggers when multiple
+        children complete concurrently. Handles multi-level propagation
+        by walking up the parent chain.
+        """
+        with self._lock:
+            changed = True
+            while changed:
+                changed = False
+                for task in self.tasks.values():
+                    if task.status == "done" or not task.children:
+                        continue
+                    children = [self.tasks[cid] for cid in task.children if cid in self.tasks]
+                    if children and all(c.status == "done" for c in children):
+                        task.status = "done"
+                        changed = True
 
     def has_ready_tasks(self) -> bool:
         return len(self.get_ready_leaves()) > 0
