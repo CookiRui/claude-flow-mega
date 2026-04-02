@@ -791,3 +791,80 @@ class TestContract:
         c = Contract(dag_id="test", inputs=["x"], outputs=["y"], constraints=[])
         c.save(base_dir=subdir)
         assert os.path.isfile(os.path.join(subdir, "test.md"))
+
+
+# ============================================================
+# checkpoint_commit tests
+# ============================================================
+
+checkpoint_commit = ps.checkpoint_commit
+
+
+class TestCheckpointCommit:
+
+    def _make_task(self, task_id="t1", desc="Do something"):
+        return RecursiveTask(
+            id=task_id, description=desc,
+            acceptance_criteria="done", dependencies=[], files=["a.py"],
+        )
+
+    @patch.object(ps.subprocess, "run")
+    def test_success_commit_message(self, mock_run):
+        """On success, commit message is 'checkpoint: {id} {desc}'."""
+        def side_effect(cmd, **kw):
+            r = type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+            if "diff" in cmd and "--cached" in cmd:
+                r.returncode = 1  # changes exist
+            elif "rev-parse" in cmd:
+                r.stdout = "abc1234"
+            return r
+        mock_run.side_effect = side_effect
+
+        task = self._make_task()
+        result = checkpoint_commit(task, success=True)
+
+        # Check commit was called with correct message
+        commit_calls = [c for c in mock_run.call_args_list
+                        if c[0][0][1] == "commit"]
+        assert len(commit_calls) == 1
+        assert commit_calls[0][0][0][3] == "checkpoint: t1 Do something"
+        assert result == "abc1234"
+        assert task.commit_hash == "abc1234"
+
+    @patch.object(ps.subprocess, "run")
+    def test_failure_commit_message(self, mock_run):
+        """On failure, commit message starts with '[FAILED] checkpoint:'."""
+        def side_effect(cmd, **kw):
+            r = type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+            if "diff" in cmd and "--cached" in cmd:
+                r.returncode = 1  # changes exist
+            elif "rev-parse" in cmd:
+                r.stdout = "def5678"
+            return r
+        mock_run.side_effect = side_effect
+
+        task = self._make_task()
+        result = checkpoint_commit(task, success=False)
+
+        commit_calls = [c for c in mock_run.call_args_list
+                        if c[0][0][1] == "commit"]
+        assert len(commit_calls) == 1
+        assert commit_calls[0][0][0][3] == "[FAILED] checkpoint: t1 Do something"
+        assert result == "def5678"
+
+    @patch.object(ps.subprocess, "run")
+    def test_no_changes_returns_none(self, mock_run):
+        """When there are no staged changes, returns None without committing."""
+        def side_effect(cmd, **kw):
+            # diff --cached --quiet returns 0 = no changes; all others succeed
+            return type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+        mock_run.side_effect = side_effect
+
+        task = self._make_task()
+        result = checkpoint_commit(task, success=True)
+
+        assert result is None
+        # Should NOT have called git commit
+        commit_calls = [c for c in mock_run.call_args_list
+                        if len(c[0][0]) > 1 and c[0][0][1] == "commit"]
+        assert len(commit_calls) == 0

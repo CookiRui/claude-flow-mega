@@ -1200,6 +1200,58 @@ def execute_parallel(tasks: list, goal: str, budget: BudgetTracker) -> list:
     return results
 
 
+def checkpoint_commit(task: RecursiveTask, success: bool) -> Optional[str]:
+    """Create a git checkpoint commit for a completed task.
+
+    Parameters
+    ----------
+    task:    The task that was just executed.
+    success: Whether the task execution succeeded.
+
+    Returns
+    -------
+    The commit hash (short) if a commit was created, or None if there were
+    no changes to commit.
+    """
+    if success:
+        msg = f"checkpoint: {task.id} {task.description}"
+    else:
+        msg = f"[FAILED] checkpoint: {task.id} {task.description}"
+
+    # Stage all changes
+    subprocess.run(["git", "add", "-A"], capture_output=True)
+
+    # Check if there is anything to commit
+    status = subprocess.run(
+        ["git", "diff", "--cached", "--quiet"],
+        capture_output=True,
+    )
+    if status.returncode == 0:
+        # Nothing staged — no changes to commit
+        return None
+
+    # Commit
+    result = subprocess.run(
+        ["git", "commit", "-m", msg],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print(f"  [WARN] git commit failed: {result.stderr.strip()}")
+        return None
+
+    # Get the commit hash
+    rev = subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        capture_output=True,
+        text=True,
+    )
+    commit_hash = rev.stdout.strip() if rev.returncode == 0 else None
+    if commit_hash:
+        task.commit_hash = commit_hash
+    return commit_hash
+
+
 def execute_dag(dag: RecursiveDAG, goal: str, budget: BudgetTracker) -> None:
     """Main DAG execution loop — runs tasks respecting dependencies and budget."""
     while dag.has_ready_tasks():
