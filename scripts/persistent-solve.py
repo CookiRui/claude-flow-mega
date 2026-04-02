@@ -304,6 +304,81 @@ class RecursiveDAG:
 
 
 # ============================================================
+# Kanban State (real-time progress tracking)
+# ============================================================
+
+class KanbanState:
+    """Tracks and displays DAG execution progress as a kanban board.
+
+    Provides:
+    - Tree-structured task status from RecursiveDAG
+    - Summary counts (total/done/failed/pending/running/cost)
+    - JSON persistence to disk
+    - Terminal tree-view with box-drawing characters
+    """
+
+    def __init__(self, goal: str):
+        self.goal = goal
+        self.start_time = datetime.now().isoformat()
+        self.tree = {}
+        self.summary = {}
+
+    def update_from_dag(self, dag: RecursiveDAG):
+        """Rebuild tree structure and summary from the current DAG state."""
+        kanban = dag.to_kanban_dict()
+        self.tree = kanban.get("tree", [])
+        self.summary = kanban.get("summary", {})
+
+    def save(self, path: str = ".claude-flow/kanban.json"):
+        """Write kanban state as JSON to disk, creating directories if needed."""
+        parent = os.path.dirname(path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        data = {
+            "goal": self.goal,
+            "start_time": self.start_time,
+            "updated_at": datetime.now().isoformat(),
+            "summary": self.summary,
+            "tree": self.tree,
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+    def print_tree(self):
+        """Print the task tree to terminal with box-drawing characters."""
+        def _format_cost(cost):
+            return f"${cost:.2f}" if cost else "$0.00"
+
+        def _print_node(node, prefix="", is_last=True):
+            connector = "└─ " if is_last else "├─ "
+            status = node.get("status", "pending")
+            task_id = node.get("id", "?")
+            desc = node.get("description", "")
+            cost = _format_cost(node.get("cost_usd", 0.0))
+            commit = node.get("commit_hash", "")
+
+            line = f"{prefix}{connector}[{status}] {task_id}: {desc}  ({cost})"
+            if commit:
+                line += f"  {commit}"
+            print(line)
+
+            children = node.get("children", [])
+            child_prefix = prefix + ("   " if is_last else "│  ")
+            for i, child in enumerate(children):
+                _print_node(child, child_prefix, i == len(children) - 1)
+
+        # Print header with goal and summary
+        total_cost = _format_cost(self.summary.get("total_cost_usd", 0.0))
+        print(f"[running] {self.goal}  ({total_cost})")
+
+        if isinstance(self.tree, list):
+            for i, root in enumerate(self.tree):
+                _print_node(root, "", i == len(self.tree) - 1)
+        elif isinstance(self.tree, dict):
+            _print_node(self.tree, "", True)
+
+
+# ============================================================
 # Contract (interface contract between sub-DAGs)
 # ============================================================
 
