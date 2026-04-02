@@ -1422,6 +1422,54 @@ Your verdict:"""
     return False
 
 
+def run_l3(task: RecursiveTask, budget: BudgetTracker) -> bool:
+    """L3 verification: run the full pytest test suite.
+
+    Executes ``python -m pytest`` via subprocess and returns whether all
+    tests pass.
+
+    Parameters
+    ----------
+    task:   The task whose implementation to verify.
+    budget: Budget tracker (checked but not charged — L3 is local-only).
+
+    Returns
+    -------
+    True if pytest exits with code 0 (all tests pass), False otherwise.
+    """
+    if not budget.can_afford():
+        print(f"  [L3] Skipping test suite for {task.id} — budget exhausted")
+        return False
+
+    print(f"  [L3] Running full test suite for {task.id}...")
+    try:
+        result = subprocess.run(
+            ["python", "-m", "pytest"],
+            capture_output=True, text=True, timeout=600,
+        )
+        if result.returncode == 0:
+            print(f"  [L3] {task.id}: PASS — all tests passed")
+            return True
+        else:
+            stdout_tail = result.stdout[-500:] if result.stdout else ""
+            stderr_tail = result.stderr[-500:] if result.stderr else ""
+            print(f"  [L3] {task.id}: FAIL — pytest exit code {result.returncode}")
+            if stdout_tail:
+                print(f"  [L3] stdout (last 500 chars): {stdout_tail}")
+            if stderr_tail:
+                print(f"  [L3] stderr (last 500 chars): {stderr_tail}")
+            return False
+    except subprocess.TimeoutExpired:
+        print(f"  [L3] {task.id}: FAIL — pytest timed out after 600s")
+        return False
+    except FileNotFoundError:
+        print(f"  [L3] {task.id}: FAIL — python not found on PATH")
+        return False
+    except Exception as exc:
+        print(f"  [L3] {task.id}: FAIL — unexpected error: {exc}")
+        return False
+
+
 def execute_dag(dag: RecursiveDAG, goal: str, budget: BudgetTracker) -> None:
     """Main DAG execution loop — runs tasks respecting dependencies and budget."""
     while dag.has_ready_tasks():
