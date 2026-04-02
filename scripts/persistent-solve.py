@@ -36,8 +36,9 @@ import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 # ============================================================
@@ -46,8 +47,19 @@ from typing import Optional
 DEFAULT_MAX_ROUNDS = 10
 DEFAULT_MAX_TIME = 7200      # 2 hours
 MAX_CONSECUTIVE_NO_PROGRESS = 3
+MAX_RECURSION_DEPTH = 5
 WIP_DIR = ".claude-flow"
 WIP_FILE = f"{WIP_DIR}/wip.md"
+CONTRACTS_DIR = f"{WIP_DIR}/contracts"
+
+
+# ============================================================
+# Exceptions
+# ============================================================
+
+class PlanningError(Exception):
+    """Raised when recursive planning fails (bad JSON, invalid complexity, etc.)."""
+    pass
 
 
 # ============================================================
@@ -289,6 +301,77 @@ class RecursiveDAG:
         tree = [_build_node(r) for r in roots]
 
         return {"summary": counts, "tree": tree}
+
+
+# ============================================================
+# Contract (interface contract between sub-DAGs)
+# ============================================================
+
+@dataclass
+class Contract:
+    """Interface contract for a sub-DAG node."""
+    dag_id: str
+    inputs: list = field(default_factory=list)
+    outputs: list = field(default_factory=list)
+    constraints: list = field(default_factory=list)
+
+    def to_markdown(self) -> str:
+        """Render the contract as a markdown document."""
+        lines = [f"# Contract: {self.dag_id}", ""]
+        lines.append("## Inputs")
+        for inp in self.inputs:
+            lines.append(f"- {inp}")
+        lines.append("")
+        lines.append("## Outputs")
+        for out in self.outputs:
+            lines.append(f"- {out}")
+        lines.append("")
+        lines.append("## Constraints")
+        for con in self.constraints:
+            lines.append(f"- {con}")
+        lines.append("")
+        return "\n".join(lines)
+
+    def save(self, base_dir: str = CONTRACTS_DIR):
+        """Write the contract to a markdown file."""
+        os.makedirs(base_dir, exist_ok=True)
+        safe_name = self.dag_id.replace("/", "_").replace("\\", "_")
+        path = os.path.join(base_dir, f"{safe_name}.md")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(self.to_markdown())
+
+    @staticmethod
+    def load(path: str) -> "Contract":
+        """Load a Contract from a markdown file."""
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Parse the markdown back into structured data
+        dag_id = ""
+        inputs = []
+        outputs = []
+        constraints = []
+        current_section = None
+
+        for line in content.splitlines():
+            if line.startswith("# Contract: "):
+                dag_id = line[len("# Contract: "):]
+            elif line.strip() == "## Inputs":
+                current_section = "inputs"
+            elif line.strip() == "## Outputs":
+                current_section = "outputs"
+            elif line.strip() == "## Constraints":
+                current_section = "constraints"
+            elif line.startswith("- "):
+                item = line[2:]
+                if current_section == "inputs":
+                    inputs.append(item)
+                elif current_section == "outputs":
+                    outputs.append(item)
+                elif current_section == "constraints":
+                    constraints.append(item)
+
+        return Contract(dag_id=dag_id, inputs=inputs, outputs=outputs, constraints=constraints)
 
 
 # ============================================================
@@ -786,6 +869,266 @@ def plan_dag(goal: str, budget: BudgetTracker) -> RecursiveDAG:
     print(dag.summary())
 
     return dag
+
+
+# ============================================================
+# Recursive Planning
+# ============================================================
+
+def build_recursive_plan_prompt(goal: str, depth: int, parent_contract: str = None) -> str:
+    """Build a prompt for recursive task decomposition with complexity rating."""
+    contract_section = ""
+    if parent_contract:
+        contract_section = f"""
+## Parent Contract (context)
+{parent_contract}
+
+You MUST respect the inputs/outputs/constraints defined in the parent contract above.
+"""
+
+    return f"""Analyze the following goal and break it down into a set of sub-tasks.
+
+Goal: {goal}
+
+Recursion depth: {depth} (max {MAX_RECURSION_DEPTH})
+{contract_section}
+Output a JSON array of task objects wrapped in a ```json code fence.
+Each task object must have exactly these fields:
+  - "id": a short unique string identifier (e.g. "task-1", "setup", "refactor-auth")
+  - "description": a one-sentence description of what the task does
+  - "acceptance_criteria": a concrete, verifiable statement of what "done" looks like
+  - "dependencies": a list of task IDs that must be completed before this task starts (empty list if none)
+  - "files": a list of file paths this task will create or modify (empty list if unknown)
+  - "complexity": an integer from 1 to 5 rating task complexity:
+    1 = trivial (< 1 min), 2 = simple (1-5 min), 3 = moderate (5-15 min),
+    4 = complex (15-30 min), 5 = very complex (> 30 min)
+
+Rules:
+  - Order tasks so that independent tasks (no dependencies) come first.
+  - Each task must be small enough to complete in a single focused session.
+  - The "complexity" field MUST be an integer in the range [1, 5]. Do NOT omit it.
+  - Do NOT include any explanation outside the ```json code fence.
+
+Example output:
+```json
+[
+  {{
+    "id": "task-1",
+    "description": "Set up project scaffolding",
+    "acceptance_criteria": "Directory structure exists with all required config files",
+    "dependencies": [],
+    "files": ["pyproject.toml", "src/__init__.py"],
+    "complexity": 2
+  }},
+  {{
+    "id": "task-2",
+    "description": "Implement core logic",
+    "acceptance_criteria": "All unit tests for core module pass",
+    "dependencies": ["task-1"],
+    "files": ["src/core.py", "tests/test_core.py"],
+    "complexity": 4
+  }}
+]
+```"""
+
+
+def parse_recursive_dag_response(response: str, parent_id: str = None) -> list:
+    """Parse Claude's recursive planning response into a list of RecursiveTask objects.
+
+    Unlike parse_dag_response, this function:
+    - Requires 'complexity' field (int in [1, 5]) — raises PlanningError if invalid
+    - Raises PlanningError on JSON parse failure (no fallback single-task)
+    - Prefixes task IDs with parent_id if provided (for global uniqueness)
+    - Remaps dependencies to use prefixed IDs
+    """
+    match = re.search(r"```json\s*([\s\S]*?)\s*```", response)
+    if not match:
+        raise PlanningError("No ```json code fence found in response")
+
+    raw_json = match.group(1)
+    try:
+        task_list = json.loads(raw_json)
+    except json.JSONDecodeError as exc:
+        raise PlanningError(f"Invalid JSON in response: {exc}") from exc
+
+    if not isinstance(task_list, list):
+        raise PlanningError("JSON root must be an array")
+
+    tasks = []
+    for item in task_list:
+        # Validate complexity
+        complexity = item.get("complexity")
+        if not isinstance(complexity, int) or complexity < 1 or complexity > 5:
+            raise PlanningError(
+                f"Task '{item.get('id', '?')}' has invalid complexity: {complexity!r} "
+                f"(must be int in [1, 5])"
+            )
+
+        task_id = str(item["id"])
+        deps = list(item.get("dependencies", []))
+
+        # Prefix IDs if parent_id is provided
+        if parent_id:
+            task_id = f"{parent_id}.{task_id}"
+            deps = [f"{parent_id}.{d}" for d in deps]
+
+        task = RecursiveTask(
+            id=task_id,
+            description=str(item.get("description", "")),
+            acceptance_criteria=str(item.get("acceptance_criteria", "")),
+            dependencies=deps,
+            files=list(item.get("files", [])),
+            complexity=complexity,
+        )
+        tasks.append(task)
+
+    return tasks
+
+
+def _generate_contract(task: RecursiveTask, budget: BudgetTracker) -> Contract:
+    """Call Claude to generate an interface contract for a non-leaf task."""
+    prompt = f"""Analyze this task and produce an interface contract describing its inputs, outputs, and constraints.
+
+Task: {task.description}
+Acceptance criteria: {task.acceptance_criteria}
+Files: {', '.join(task.files) if task.files else 'unknown'}
+
+Output JSON inside a ```json code fence with exactly these fields:
+- "inputs": list of strings describing required interfaces/data from upstream
+- "outputs": list of strings describing interfaces/data this task provides downstream
+- "constraints": list of strings describing architectural constraints
+
+```json
+{{
+  "inputs": ["..."],
+  "outputs": ["..."],
+  "constraints": ["..."]
+}}
+```"""
+    session = run_claude_session(prompt, budget_usd=budget.next_task_budget())
+    budget.record(f"contract-{task.id}", session["cost_usd"])
+
+    try:
+        match = re.search(r"```json\s*([\s\S]*?)\s*```", session["output"])
+        if match:
+            data = json.loads(match.group(1))
+            return Contract(
+                dag_id=task.id,
+                inputs=data.get("inputs", []),
+                outputs=data.get("outputs", []),
+                constraints=data.get("constraints", []),
+            )
+    except (json.JSONDecodeError, KeyError):
+        pass
+
+    # Fallback: minimal contract
+    return Contract(dag_id=task.id, inputs=[], outputs=[], constraints=[])
+
+
+def load_relevant_contracts(task: RecursiveTask, dag: RecursiveDAG) -> str:
+    """Load parent + completed sibling contracts, return as markdown."""
+    parts = []
+    base_dir = CONTRACTS_DIR
+
+    # Parent contract
+    if task.parent:
+        safe_parent = task.parent.replace("/", "_").replace("\\", "_")
+        parent_path = os.path.join(base_dir, f"{safe_parent}.md")
+        if os.path.isfile(parent_path):
+            contract = Contract.load(parent_path)
+            parts.append(f"### Parent Contract ({task.parent})\n{contract.to_markdown()}")
+
+    # Sibling contracts (children of the same parent that are done)
+    if task.parent and task.parent in dag.tasks:
+        parent_task = dag.tasks[task.parent]
+        for sibling_id in parent_task.children:
+            if sibling_id == task.id:
+                continue
+            sibling = dag.tasks.get(sibling_id)
+            if sibling and sibling.status == "done":
+                safe_sib = sibling_id.replace("/", "_").replace("\\", "_")
+                sib_path = os.path.join(base_dir, f"{safe_sib}.md")
+                if os.path.isfile(sib_path):
+                    contract = Contract.load(sib_path)
+                    parts.append(f"### Sibling Contract ({sibling_id})\n{contract.to_markdown()}")
+
+    return "\n\n".join(parts)
+
+
+def cleanup_contracts(base_dir: str = CONTRACTS_DIR):
+    """Delete all contract files."""
+    if os.path.isdir(base_dir):
+        for fname in os.listdir(base_dir):
+            fpath = os.path.join(base_dir, fname)
+            if os.path.isfile(fpath):
+                os.remove(fpath)
+        # Try to remove the directory itself
+        try:
+            os.rmdir(base_dir)
+        except OSError:
+            pass
+
+
+def recursive_plan(
+    goal: str,
+    budget: BudgetTracker,
+    depth: int = 0,
+    parent_id: str = None,
+    parent_contract: str = None,
+) -> RecursiveDAG:
+    """Recursively plan a goal into a DAG of tasks.
+
+    - Calls Claude to decompose goal into tasks with complexity ratings
+    - For tasks with complexity >= 3: recurse (unless depth > MAX_RECURSION_DEPTH)
+    - Generates contract files for non-leaf tasks
+    - Returns a RecursiveDAG with all tasks flattened across depths
+    """
+    print(f"  [Plan] depth={depth} parent={parent_id or 'root'}")
+
+    prompt = build_recursive_plan_prompt(goal, depth, parent_contract)
+    session = run_claude_session(prompt, budget_usd=budget.next_task_budget())
+    budget.record(f"plan-d{depth}-{parent_id or 'root'}", session["cost_usd"])
+
+    tasks = parse_recursive_dag_response(session["output"], parent_id)
+
+    # Set depth on all tasks
+    for t in tasks:
+        t.depth = depth
+
+    all_tasks = []
+
+    for task in tasks:
+        if task.complexity >= 3 and depth < MAX_RECURSION_DEPTH:
+            # Generate contract for this non-leaf task
+            contract = _generate_contract(task, budget)
+            contract.save()
+
+            # Recurse
+            sub_dag = recursive_plan(
+                goal=task.description,
+                budget=budget,
+                depth=depth + 1,
+                parent_id=task.id,
+                parent_contract=contract.to_markdown(),
+            )
+
+            # Wire parent/children links
+            sub_root_ids = [
+                t.id for t in sub_dag.tasks.values()
+                if t.depth == depth + 1
+            ]
+            task.children = sub_root_ids
+            for st in sub_dag.tasks.values():
+                if st.depth == depth + 1:
+                    st.parent = task.id
+
+            all_tasks.append(task)
+            all_tasks.extend(sub_dag.tasks.values())
+        else:
+            # Leaf task (low complexity or depth limit reached)
+            all_tasks.append(task)
+
+    return RecursiveDAG(all_tasks)
 
 
 # ============================================================

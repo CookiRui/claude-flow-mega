@@ -18,9 +18,13 @@ ps = import_module("persistent-solve")
 RecursiveTask = ps.RecursiveTask
 RecursiveDAG = ps.RecursiveDAG
 BudgetTracker = ps.BudgetTracker
+PlanningError = ps.PlanningError
+Contract = ps.Contract
 build_clarify_prompt = ps.build_clarify_prompt
 build_plan_prompt = ps.build_plan_prompt
+build_recursive_plan_prompt = ps.build_recursive_plan_prompt
 parse_dag_response = ps.parse_dag_response
+parse_recursive_dag_response = ps.parse_recursive_dag_response
 clarify_goal = ps.clarify_goal
 
 
@@ -614,3 +618,176 @@ class TestClarifyGoal:
         clarify_goal("Goal", bt)
         assert "clarification" in bt.task_costs
         assert bt.task_costs["clarification"] == 0.01
+
+
+# ============================================================
+# parse_recursive_dag_response tests
+# ============================================================
+
+class TestParseRecursiveDagResponse:
+
+    def test_valid_json_with_complexity(self):
+        response = '''```json
+[
+  {"id": "t1", "description": "do X", "acceptance_criteria": "X done",
+   "dependencies": [], "files": ["a.py"], "complexity": 2},
+  {"id": "t2", "description": "do Y", "acceptance_criteria": "Y done",
+   "dependencies": ["t1"], "files": ["b.py"], "complexity": 4}
+]
+```'''
+        tasks = parse_recursive_dag_response(response)
+        assert len(tasks) == 2
+        assert tasks[0].id == "t1"
+        assert tasks[0].complexity == 2
+        assert tasks[1].complexity == 4
+        assert tasks[1].dependencies == ["t1"]
+
+    def test_complexity_out_of_range_raises(self):
+        response = '''```json
+[{"id": "t1", "description": "d", "acceptance_criteria": "a",
+  "dependencies": [], "files": [], "complexity": 7}]
+```'''
+        with pytest.raises(PlanningError, match="invalid complexity"):
+            parse_recursive_dag_response(response)
+
+    def test_complexity_zero_raises(self):
+        response = '''```json
+[{"id": "t1", "description": "d", "acceptance_criteria": "a",
+  "dependencies": [], "files": [], "complexity": 0}]
+```'''
+        with pytest.raises(PlanningError, match="invalid complexity"):
+            parse_recursive_dag_response(response)
+
+    def test_complexity_string_raises(self):
+        response = '''```json
+[{"id": "t1", "description": "d", "acceptance_criteria": "a",
+  "dependencies": [], "files": [], "complexity": "high"}]
+```'''
+        with pytest.raises(PlanningError, match="invalid complexity"):
+            parse_recursive_dag_response(response)
+
+    def test_complexity_missing_raises(self):
+        response = '''```json
+[{"id": "t1", "description": "d", "acceptance_criteria": "a",
+  "dependencies": [], "files": []}]
+```'''
+        with pytest.raises(PlanningError, match="invalid complexity"):
+            parse_recursive_dag_response(response)
+
+    def test_malformed_json_raises(self):
+        response = '```json\n{not valid json\n```'
+        with pytest.raises(PlanningError, match="Invalid JSON"):
+            parse_recursive_dag_response(response)
+
+    def test_no_json_fence_raises(self):
+        response = "just some text without json"
+        with pytest.raises(PlanningError, match="No.*json.*fence"):
+            parse_recursive_dag_response(response)
+
+    def test_non_array_raises(self):
+        response = '```json\n{"id": "single"}\n```'
+        with pytest.raises(PlanningError, match="must be an array"):
+            parse_recursive_dag_response(response)
+
+    def test_id_prefixing_with_parent_id(self):
+        response = '''```json
+[
+  {"id": "a", "description": "d", "acceptance_criteria": "a",
+   "dependencies": [], "files": [], "complexity": 1},
+  {"id": "b", "description": "d", "acceptance_criteria": "a",
+   "dependencies": ["a"], "files": [], "complexity": 2}
+]
+```'''
+        tasks = parse_recursive_dag_response(response, parent_id="L0.T1")
+        assert tasks[0].id == "L0.T1.a"
+        assert tasks[1].id == "L0.T1.b"
+        assert tasks[1].dependencies == ["L0.T1.a"]
+
+    def test_no_parent_id_no_prefix(self):
+        response = '''```json
+[{"id": "x", "description": "d", "acceptance_criteria": "a",
+  "dependencies": [], "files": [], "complexity": 1}]
+```'''
+        tasks = parse_recursive_dag_response(response, parent_id=None)
+        assert tasks[0].id == "x"
+
+
+# ============================================================
+# build_recursive_plan_prompt tests
+# ============================================================
+
+class TestBuildRecursivePlanPrompt:
+
+    def test_contains_complexity_requirement(self):
+        prompt = build_recursive_plan_prompt("Build a feature", depth=0)
+        assert "complexity" in prompt.lower()
+        assert "[1, 5]" in prompt or "1 to 5" in prompt
+
+    def test_contains_goal(self):
+        prompt = build_recursive_plan_prompt("Fix the auth bug", depth=1)
+        assert "Fix the auth bug" in prompt
+
+    def test_includes_parent_contract(self):
+        contract_md = "## Inputs\n- user data\n## Outputs\n- auth token"
+        prompt = build_recursive_plan_prompt("Sub-task", depth=1, parent_contract=contract_md)
+        assert "Parent Contract" in prompt
+        assert "user data" in prompt
+        assert "auth token" in prompt
+
+    def test_no_parent_contract(self):
+        prompt = build_recursive_plan_prompt("Task", depth=0, parent_contract=None)
+        assert "Parent Contract" not in prompt
+
+    def test_includes_depth_info(self):
+        prompt = build_recursive_plan_prompt("Task", depth=3)
+        assert "3" in prompt
+        assert str(ps.MAX_RECURSION_DEPTH) in prompt
+
+
+# ============================================================
+# Contract tests
+# ============================================================
+
+class TestContract:
+
+    def test_to_markdown(self):
+        c = Contract(
+            dag_id="task-1",
+            inputs=["user config", "env vars"],
+            outputs=["compiled binary"],
+            constraints=["must use stdlib only"],
+        )
+        md = c.to_markdown()
+        assert "# Contract: task-1" in md
+        assert "- user config" in md
+        assert "- compiled binary" in md
+        assert "- must use stdlib only" in md
+
+    def test_save_and_load_roundtrip(self, tmp_path):
+        c = Contract(
+            dag_id="T1.sub-2",
+            inputs=["api schema"],
+            outputs=["client code", "test stubs"],
+            constraints=["no external deps"],
+        )
+        c.save(base_dir=str(tmp_path))
+
+        loaded = Contract.load(str(tmp_path / "T1.sub-2.md"))
+        assert loaded.dag_id == "T1.sub-2"
+        assert loaded.inputs == ["api schema"]
+        assert loaded.outputs == ["client code", "test stubs"]
+        assert loaded.constraints == ["no external deps"]
+
+    def test_empty_contract(self):
+        c = Contract(dag_id="empty")
+        md = c.to_markdown()
+        assert "# Contract: empty" in md
+        # Should still have section headers
+        assert "## Inputs" in md
+        assert "## Outputs" in md
+
+    def test_save_creates_directory(self, tmp_path):
+        subdir = str(tmp_path / "nested" / "contracts")
+        c = Contract(dag_id="test", inputs=["x"], outputs=["y"], constraints=[])
+        c.save(base_dir=subdir)
+        assert os.path.isfile(os.path.join(subdir, "test.md"))
