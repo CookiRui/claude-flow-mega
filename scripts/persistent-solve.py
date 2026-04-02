@@ -1539,6 +1539,107 @@ def run_l3(task: RecursiveTask, budget: BudgetTracker) -> bool:
         return False
 
 
+def replan_subtree(
+    task: RecursiveTask,
+    dag: RecursiveDAG,
+    error_context: str,
+    budget: BudgetTracker,
+) -> bool:
+    """Re-decompose a failed task via Claude and replace it in the DAG.
+
+    Collects failure context and sibling contracts, calls Claude to produce a
+    new sub-task decomposition, parses the response, calls
+    ``dag.replace_subtree`` to swap in the new children, and generates
+    contracts for any non-leaf new children.
+
+    Returns True if the replan succeeded, False if it also failed.
+    """
+    if not budget.can_afford():
+        print(f"  [Replan] Skipping replan for {task.id} — budget exhausted")
+        return False
+
+    # Collect sibling contracts for context
+    sibling_contracts = ""
+    if task.parent and task.parent in dag.tasks:
+        parent_task = dag.tasks[task.parent]
+        for sib_id in parent_task.children:
+            if sib_id == task.id:
+                continue
+            sib = dag.tasks.get(sib_id)
+            if sib and sib.status == "done":
+                safe_sib = sib_id.replace("/", "_").replace("\\", "_")
+                sib_path = os.path.join(CONTRACTS_DIR, f"{safe_sib}.md")
+                if os.path.isfile(sib_path):
+                    contract = Contract.load(sib_path)
+                    sibling_contracts += f"### Sibling Contract ({sib_id})\n{contract.to_markdown()}\n\n"
+
+    prompt = f"""A sub-task failed during execution. Re-decompose it into smaller, more achievable sub-tasks.
+
+## Failed Task
+ID: {task.id}
+Description: {task.description}
+Acceptance Criteria: {task.acceptance_criteria}
+Files: {', '.join(task.files) if task.files else 'unknown'}
+
+## Failure Context
+{error_context}
+
+## Completed Sibling Contracts
+{sibling_contracts if sibling_contracts else '(none)'}
+
+## Instructions
+Re-decompose this task into smaller sub-tasks that avoid the failure. Each sub-task must have complexity 1-2.
+Output a JSON array inside a ```json code fence:
+```json
+[{{
+  "id": "task-1",
+  "description": "...",
+  "acceptance_criteria": "...",
+  "dependencies": [],
+  "files": ["..."],
+  "complexity": 1
+}}]
+```"""
+
+    try:
+        print(f"  [Replan] Re-decomposing {task.id}...")
+        session = run_claude_session(prompt, budget_usd=budget.next_task_budget())
+        budget.record(f"replan-{task.id}", session["cost_usd"])
+
+        new_tasks = parse_recursive_dag_response(session["output"], task.id)
+
+        if not new_tasks:
+            print(f"  [Replan] {task.id}: no new sub-tasks returned")
+            return False
+
+        # Set depth on new tasks
+        for t in new_tasks:
+            t.depth = task.depth + 1
+
+        # Replace the subtree in the DAG
+        dag.replace_subtree(task.id, new_tasks)
+
+        # Generate contracts for non-leaf new children (complexity >= 3)
+        for t in new_tasks:
+            if t.complexity >= 3:
+                contract = _generate_contract(t, budget)
+                contract.save()
+
+        # Reset parent task status so it can be re-evaluated
+        task.status = "pending"
+
+        print(f"  [Replan] {task.id}: re-decomposed into {len(new_tasks)} sub-tasks: "
+              f"{[t.id for t in new_tasks]}")
+        return True
+
+    except PlanningError as exc:
+        print(f"  [Replan] {task.id}: planning failed — {exc}")
+        return False
+    except Exception as exc:
+        print(f"  [Replan] {task.id}: unexpected error — {exc}")
+        return False
+
+
 def execute_dag(dag: RecursiveDAG, goal: str, budget: BudgetTracker) -> None:
     """Main DAG execution loop — runs tasks respecting dependencies and budget."""
     while dag.has_ready_tasks():
