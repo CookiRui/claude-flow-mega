@@ -1078,3 +1078,296 @@ class TestExecuteLeafTask:
 
         assert bt.total_spent == 0.07
         assert "leaf1" in bt.task_costs
+
+
+# ============================================================
+# KanbanState tests
+# ============================================================
+
+KanbanState = ps.KanbanState
+
+
+class TestKanbanStateUpdateFromDag:
+
+    def _make_dag(self):
+        """Build a DAG with mixed statuses for summary counting."""
+        tasks = [
+            RecursiveTask(id="t1", description="done task", acceptance_criteria="",
+                         dependencies=[], files=[], status="done", cost_usd=0.10),
+            RecursiveTask(id="t2", description="failed task", acceptance_criteria="",
+                         dependencies=[], files=[], status="failed", cost_usd=0.05),
+            RecursiveTask(id="t3", description="running task", acceptance_criteria="",
+                         dependencies=[], files=[], status="running", cost_usd=0.02),
+            RecursiveTask(id="t4", description="pending task", acceptance_criteria="",
+                         dependencies=[], files=[], status="pending", cost_usd=0.0),
+            RecursiveTask(id="t5", description="pending task 2", acceptance_criteria="",
+                         dependencies=[], files=[], status="pending", cost_usd=0.0),
+        ]
+        return RecursiveDAG(tasks)
+
+    def test_summary_counts(self):
+        """update_from_dag produces correct total/done/failed/pending/running counts."""
+        dag = self._make_dag()
+        ks = KanbanState("Test goal")
+        ks.update_from_dag(dag)
+        s = ks.summary
+        assert s["total"] == 5
+        assert s["done"] == 1
+        assert s["failed"] == 1
+        assert s["running"] == 1
+        assert s["pending"] == 2
+
+    def test_summary_total_cost(self):
+        """update_from_dag computes correct total_cost_usd."""
+        dag = self._make_dag()
+        ks = KanbanState("Test goal")
+        ks.update_from_dag(dag)
+        assert abs(ks.summary["total_cost_usd"] - 0.17) < 0.001
+
+    def test_tree_populated(self):
+        """update_from_dag populates tree as a list of root nodes."""
+        dag = self._make_dag()
+        ks = KanbanState("Test goal")
+        ks.update_from_dag(dag)
+        assert isinstance(ks.tree, list)
+        assert len(ks.tree) == 5  # all are roots (no parent)
+
+    def test_empty_dag(self):
+        """An empty DAG produces zero counts and empty tree."""
+        dag = RecursiveDAG([])
+        ks = KanbanState("Empty")
+        ks.update_from_dag(dag)
+        assert ks.summary["total"] == 0
+        assert ks.summary["total_cost_usd"] == 0.0
+        assert ks.tree == []
+
+    def test_nested_dag_tree_structure(self):
+        """A parent-child DAG produces nested tree nodes."""
+        parent = RecursiveTask(id="p", description="parent", acceptance_criteria="",
+                               dependencies=[], files=[], children=["c1"], cost_usd=0.0)
+        child = RecursiveTask(id="c1", description="child", acceptance_criteria="",
+                              dependencies=[], files=[], parent="p", cost_usd=0.03, status="done")
+        dag = RecursiveDAG([parent, child])
+        ks = KanbanState("Nested")
+        ks.update_from_dag(dag)
+        assert len(ks.tree) == 1  # only root
+        assert ks.tree[0]["id"] == "p"
+        assert len(ks.tree[0]["children"]) == 1
+        assert ks.tree[0]["children"][0]["id"] == "c1"
+
+
+class TestKanbanStateSave:
+
+    def test_save_creates_file(self, tmp_path):
+        """save() writes a file at the given path."""
+        ks = KanbanState("Save test")
+        out = str(tmp_path / "kanban.json")
+        ks.save(path=out)
+        assert os.path.isfile(out)
+
+    def test_save_valid_json(self, tmp_path):
+        """save() writes valid JSON that can be parsed."""
+        ks = KanbanState("Save test")
+        out = str(tmp_path / "kanban.json")
+        ks.save(path=out)
+        with open(out, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        assert data["goal"] == "Save test"
+        assert "start_time" in data
+        assert "updated_at" in data
+        assert "summary" in data
+        assert "tree" in data
+
+    def test_save_creates_directories(self, tmp_path):
+        """save() creates parent directories if they don't exist."""
+        ks = KanbanState("Nested dir test")
+        out = str(tmp_path / "deep" / "nested" / "kanban.json")
+        ks.save(path=out)
+        assert os.path.isfile(out)
+
+    def test_save_with_populated_state(self, tmp_path):
+        """save() after update_from_dag includes summary and tree data."""
+        tasks = [
+            RecursiveTask(id="t1", description="task", acceptance_criteria="",
+                         dependencies=[], files=[], status="done", cost_usd=0.05,
+                         commit_hash="abc1234"),
+        ]
+        dag = RecursiveDAG(tasks)
+        ks = KanbanState("Full save test")
+        ks.update_from_dag(dag)
+        out = str(tmp_path / "kanban.json")
+        ks.save(path=out)
+        with open(out, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        assert data["summary"]["total"] == 1
+        assert data["summary"]["done"] == 1
+        assert data["summary"]["total_cost_usd"] == 0.05
+        assert len(data["tree"]) == 1
+        assert data["tree"][0]["commit_hash"] == "abc1234"
+
+
+class TestKanbanStatePrintTree:
+
+    def _make_kanban_with_tree(self):
+        """Build a KanbanState with a nested tree for print testing.
+
+        Structure: p -> [c1 -> [gc1], c2]
+        This ensures box-drawing chars including │ appear (│ shows in the
+        prefix when a non-last child has sub-children).
+        """
+        parent = RecursiveTask(id="p", description="Parent task", acceptance_criteria="",
+                               dependencies=[], files=[], children=["c1", "c2"],
+                               cost_usd=0.0, status="running")
+        c1 = RecursiveTask(id="c1", description="Child 1", acceptance_criteria="",
+                           dependencies=[], files=[], parent="p", children=["gc1"],
+                           cost_usd=0.15, status="done", commit_hash="abc1234")
+        gc1 = RecursiveTask(id="gc1", description="Grandchild", acceptance_criteria="",
+                            dependencies=[], files=[], parent="c1",
+                            cost_usd=0.05, status="done")
+        c2 = RecursiveTask(id="c2", description="Child 2", acceptance_criteria="",
+                           dependencies=[], files=[], parent="p",
+                           cost_usd=0.25, status="pending")
+        dag = RecursiveDAG([parent, c1, gc1, c2])
+        ks = KanbanState("Test goal")
+        ks.update_from_dag(dag)
+        return ks
+
+    def test_contains_box_drawing_chars(self, capsys):
+        """print_tree output includes box-drawing characters \u251c\u2500, \u2514\u2500, \u2502."""
+        ks = self._make_kanban_with_tree()
+        ks.print_tree()
+        output = capsys.readouterr().out
+        # Use Unicode escapes to avoid encoding issues on Windows
+        assert "\u251c\u2500" in output or "\u2514\u2500" in output  # ├─ or └─
+        assert "\u2502" in output  # │
+
+    def test_contains_status_markers(self, capsys):
+        """print_tree output includes [done], [pending], [running] markers."""
+        ks = self._make_kanban_with_tree()
+        ks.print_tree()
+        output = capsys.readouterr().out
+        assert "[done]" in output
+        assert "[pending]" in output
+        assert "[running]" in output
+
+    def test_contains_cost_info(self, capsys):
+        """print_tree output includes cost values."""
+        ks = self._make_kanban_with_tree()
+        ks.print_tree()
+        output = capsys.readouterr().out
+        assert "$0.15" in output
+        assert "$0.25" in output
+
+    def test_contains_commit_hash(self, capsys):
+        """print_tree output includes commit hashes for done tasks."""
+        ks = self._make_kanban_with_tree()
+        ks.print_tree()
+        output = capsys.readouterr().out
+        assert "abc1234" in output
+
+    def test_contains_goal_header(self, capsys):
+        """print_tree output starts with goal line."""
+        ks = self._make_kanban_with_tree()
+        ks.print_tree()
+        output = capsys.readouterr().out
+        assert "Test goal" in output
+
+    def test_empty_tree(self, capsys):
+        """print_tree with no tasks just prints the header."""
+        ks = KanbanState("Empty goal")
+        ks.summary = {"total_cost_usd": 0.0}
+        ks.print_tree()
+        output = capsys.readouterr().out
+        assert "Empty goal" in output
+        # No box-drawing chars for empty tree
+        assert "├─" not in output
+
+
+# ============================================================
+# CLI argument parsing tests
+# ============================================================
+
+class TestCLIArgs:
+
+    def _parse(self, args_list):
+        """Parse CLI args using the script's argparse setup."""
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("goal")
+        parser.add_argument("--max-rounds", type=int, default=ps.DEFAULT_MAX_ROUNDS)
+        parser.add_argument("--max-time", type=int, default=ps.DEFAULT_MAX_TIME)
+        parser.add_argument("--max-budget-usd", type=float, default=5.0)
+        parser.add_argument("--per-task-budget", type=float, default=0.5)
+        parser.add_argument("--mode", choices=["dag", "legacy"], default="dag")
+        parser.add_argument("--no-clarify", action="store_true")
+        parser.add_argument("--recursive", action="store_true")
+        parser.add_argument("--kanban", action="store_true")
+        parser.add_argument("--kanban-path", type=str, default=None)
+        parser.add_argument("--verify-level", choices=["auto", "l1", "l2", "l3"], default="auto")
+        return parser.parse_args(args_list)
+
+    def test_recursive_default_false(self):
+        """--recursive defaults to False."""
+        args = self._parse(["my goal"])
+        assert args.recursive is False
+
+    def test_recursive_flag(self):
+        """--recursive sets True."""
+        args = self._parse(["my goal", "--recursive"])
+        assert args.recursive is True
+
+    def test_kanban_default_false(self):
+        """--kanban defaults to False (store_true)."""
+        args = self._parse(["my goal"])
+        assert args.kanban is False
+
+    def test_kanban_flag(self):
+        """--kanban sets True."""
+        args = self._parse(["my goal", "--kanban"])
+        assert args.kanban is True
+
+    def test_kanban_path_default_none(self):
+        """--kanban-path defaults to None."""
+        args = self._parse(["my goal"])
+        assert args.kanban_path is None
+
+    def test_kanban_path_custom(self):
+        """--kanban-path accepts custom path."""
+        args = self._parse(["my goal", "--kanban-path", "/tmp/kb.json"])
+        assert args.kanban_path == "/tmp/kb.json"
+
+    def test_verify_level_default_auto(self):
+        """--verify-level defaults to 'auto'."""
+        args = self._parse(["my goal"])
+        assert args.verify_level == "auto"
+
+    def test_verify_level_choices(self):
+        """--verify-level accepts l1, l2, l3."""
+        for level in ["l1", "l2", "l3", "auto"]:
+            args = self._parse(["my goal", "--verify-level", level])
+            assert args.verify_level == level
+
+    def test_verify_level_invalid_rejected(self):
+        """--verify-level rejects invalid values."""
+        with pytest.raises(SystemExit):
+            self._parse(["my goal", "--verify-level", "l4"])
+
+    def test_backward_compatibility_no_new_flags(self):
+        """Without new flags, old behavior is preserved: mode=dag, no recursive."""
+        args = self._parse(["my goal"])
+        assert args.mode == "dag"
+        assert args.recursive is False
+        assert args.kanban is False
+        assert args.kanban_path is None
+        assert args.verify_level == "auto"
+
+    def test_all_flags_together(self):
+        """All new flags can be combined."""
+        args = self._parse([
+            "my goal", "--recursive", "--kanban",
+            "--kanban-path", "out/kb.json", "--verify-level", "l2",
+        ])
+        assert args.recursive is True
+        assert args.kanban is True
+        assert args.kanban_path == "out/kb.json"
+        assert args.verify_level == "l2"
