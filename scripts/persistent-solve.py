@@ -1308,6 +1308,120 @@ Your verdict:"""
         return False
 
 
+def run_l2(task: RecursiveTask, budget: BudgetTracker) -> bool:
+    """L2 verification: adversarial review via Claude with up to 2 fix rounds.
+
+    Runs ``git diff HEAD~1`` to capture the task's changes, then asks Claude
+    to act as a strict code reviewer.  If the review finds issues, a second
+    Claude call attempts to fix them.  The review-fix cycle runs at most 2
+    times.
+
+    Parameters
+    ----------
+    task:   The task whose changes to review.
+    budget: Budget tracker (used to cap verification cost).
+
+    Returns
+    -------
+    True if the review passes (or no issues remain), False otherwise.
+    """
+    per_round_budget = min(0.10, budget.remaining() * 0.1)
+    if not budget.can_afford():
+        print(f"  [L2] Skipping adversarial review for {task.id} — budget exhausted")
+        return False
+
+    # Grab the diff for the most recent commit (the checkpoint commit)
+    try:
+        diff_proc = subprocess.run(
+            ["git", "diff", "HEAD~1"],
+            capture_output=True, text=True, timeout=30,
+        )
+        diff_text = diff_proc.stdout.strip()
+    except Exception as exc:
+        print(f"  [L2] Failed to get git diff for {task.id}: {exc}")
+        return False
+
+    if not diff_text:
+        print(f"  [L2] No diff found for {task.id}, skipping review")
+        return True
+
+    max_rounds = 2
+    for round_num in range(1, max_rounds + 1):
+        if not budget.can_afford():
+            print(f"  [L2] Budget exhausted during round {round_num} for {task.id}")
+            return False
+
+        # --- Review step ---
+        review_prompt = f"""You are a strict, adversarial code reviewer. Review the following git diff for correctness, security, performance, and style issues.
+
+## Task Context
+{task.description}
+
+## Acceptance Criteria
+{task.acceptance_criteria}
+
+## Git Diff
+```
+{diff_text}
+```
+
+## Instructions
+1. Look for bugs, security vulnerabilities, logic errors, missing edge cases, and style issues.
+2. If everything looks good, respond with exactly: PASS
+3. If there are issues, respond with: FAIL followed by a numbered list of issues to fix.
+
+Your verdict:"""
+
+        print(f"  [L2] Review round {round_num} for {task.id}...")
+        review_result = run_claude_session(review_prompt, timeout=180, budget_usd=per_round_budget)
+        budget.add(review_result.get("cost_usd", 0.0))
+
+        review_output = review_result.get("output", "").strip()
+        if re.search(r'\bPASS\b', review_output, re.IGNORECASE):
+            print(f"  [L2] {task.id}: PASS (round {round_num})")
+            return True
+
+        print(f"  [L2] {task.id}: Issues found (round {round_num})")
+
+        # --- Fix step ---
+        if not budget.can_afford():
+            print(f"  [L2] Budget exhausted before fix step for {task.id}")
+            return False
+
+        fix_prompt = f"""You are a code executor. A strict code review found the following issues in recently committed code. Fix all of them.
+
+## Task Context
+{task.description}
+
+## Review Feedback
+{review_output}
+
+## Instructions
+1. Read the relevant source files.
+2. Fix every issue listed in the review feedback.
+3. Do NOT introduce new features — only fix the reported issues.
+4. After fixing, briefly list what you changed."""
+
+        print(f"  [L2] Fixing issues for {task.id} (round {round_num})...")
+        fix_result = run_claude_session(fix_prompt, timeout=300, budget_usd=per_round_budget)
+        budget.add(fix_result.get("cost_usd", 0.0))
+
+        # Re-capture the diff after fix for the next review round
+        try:
+            diff_proc = subprocess.run(
+                ["git", "diff", "HEAD"],
+                capture_output=True, text=True, timeout=30,
+            )
+            new_diff = diff_proc.stdout.strip()
+            if new_diff:
+                diff_text = new_diff
+        except Exception:
+            pass  # Use previous diff if re-capture fails
+
+    print(f"  [L2] {task.id}: FAIL — issues remain after {max_rounds} rounds")
+    return False
+
+
 def execute_dag(dag: RecursiveDAG, goal: str, budget: BudgetTracker) -> None:
     """Main DAG execution loop — runs tasks respecting dependencies and budget."""
     while dag.has_ready_tasks():
