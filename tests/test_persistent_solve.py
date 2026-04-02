@@ -119,6 +119,15 @@ class TestRecursiveDAG:
         assert len(parallel) == 1
         assert len(sequential) == 0
 
+    def test_summary(self):
+        dag = RecursiveDAG(self._make_tasks())
+        dag.mark_done("t1", result={"cost_usd": 0.05})
+        dag.mark_failed("t2", error_summary="timeout")
+        text = dag.summary()
+        assert "t1" in text and "done" in text
+        assert "t2" in text and "failed" in text
+        assert "t3" in text and "pending" in text
+
 
 # ============================================================
 # BudgetTracker tests
