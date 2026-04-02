@@ -82,6 +82,9 @@ python install.py /path/to/your-project --preset unity  # 核心 + Unity
 # DAG 模式（默认）：自动分解为子任务，原子化执行，费用追踪
 python scripts/persistent-solve.py "重构整个数据层架构"
 
+# 递归 DAG 模式：按复杂度递归拆解 + 看板输出
+python scripts/persistent-solve.py "重构整个数据层架构" --recursive
+
 # 控制预算
 python scripts/persistent-solve.py "重构整个数据层架构" --max-budget-usd 3.0 --per-task-budget 0.3
 ```
@@ -146,6 +149,10 @@ presets/                               # 引擎专属叠加层
 python scripts/persistent-solve.py "让游戏帧率稳定 60fps"
 python scripts/persistent-solve.py "重构认证系统" --max-budget-usd 3.0 --per-task-budget 0.3
 
+# 递归 DAG 模式：自动按复杂度递归拆解，直到所有叶子任务 ≤5 分钟
+python scripts/persistent-solve.py "重构整个数据层架构" --recursive
+python scripts/persistent-solve.py "重构整个数据层架构" --recursive --verify-level l2
+
 # Legacy 模式：原始 WIP 握手循环（一轮一个完整会话）
 python scripts/persistent-solve.py "修复内存泄漏" --mode legacy
 
@@ -158,6 +165,30 @@ python scripts/persistent-solve.py "目标" --max-rounds 5 --max-time 3600
 - **预算控制**：`--max-budget-usd` 总预算 + `--per-task-budget` 单任务预算，到达即熔断
 - **并行执行**：无文件冲突的子任务通过 `ThreadPoolExecutor` 进程级并行
 - **熔断保护**：预算、时间、轮次、无进展检测四重熔断
+
+**递归 DAG 模式**（`--recursive`）在 DAG 模式基础上增加递归拆解能力：
+- **递归拆解**：按复杂度自动收敛（C≤2 停止，C≥3 继续递归），硬上限 5 层深度
+- **原子提交**：每个叶子任务产出一个独立 checkpoint commit
+- **验证分级**：按复杂度自动选择验证级别（C:1-2 → L1，C:3-4 → L1+L2，C:5 → L1+L2+L3）
+- **局部重规划**：失败时只重新拆解失败节点及其下游，不影响已完成的分支
+- **看板输出**：实时写 `kanban.json` + 终端树形进度显示
+
+**看板输出**（`kanban.json`）：执行过程中自动生成 `.claude-flow/kanban.json`，包含任务树结构、状态汇总（total/done/failed/pending/running）和费用追踪（total_cost_usd）。终端同步显示树形进度：
+```
+[running] 重构整个数据层架构  ($2.34)
+├─ [done] T1: 数据模型重构  ($0.40)  abc1234
+│  ├─ [done] T1.1: 实体定义  ($0.15)  def5678
+│  └─ [done] T1.2: 关系映射  ($0.25)  ghi9012
+├─ [running] T2: 查询层重写  ($0.80)
+└─ [pending] T3: 迁移脚本
+```
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--recursive` | `False` | 启用递归 DAG 拆解（显式 opt-in） |
+| `--kanban` | `True` | 启用看板输出（终端树形 + JSON 文件） |
+| `--kanban-path PATH` | `.claude-flow/kanban.json` | 看板 JSON 输出路径 |
+| `--verify-level` | `auto` | 验证级别覆盖（`auto`\|`l1`\|`l2`\|`l3`，auto = 按复杂度分级） |
 
 **Legacy 模式** 保留原始行为：每轮一个完整 Claude 会话，通过 `.claude-flow/wip.md` 在会话间传递进度。
 
@@ -263,7 +294,7 @@ unity-ops.sh            → UnityOpsRunner → 场景/预制体/材质操作 →
 | 费用预算控制     | `--max-budget-usd` 实际费用追踪 + 熔断 | 无                            | 无                           |
 | 自主执行引擎     | 8 层 `/deep-task`（DAG→并行Agent→验证→元学习）| 无                       | 无                           |
 | 一键初始化       | `/init-project` 自动分析生成           | 无                            | 手动配置                     |
-| 跨会话持久化     | 原子化 DAG 调度 + WIP + 费用追踪       | 无                            | 无                           |
+| 跨会话持久化     | 递归 DAG 调度 + 看板输出 + WIP + 费用追踪 | 无                            | 无                           |
 | 验证体系         | 三级 + 多 Agent 对抗循环（Reviewer↔Executor 收敛）| 无                     | 无                           |
 | 内置 TDD 强制    | ✅ 通过宪法强制执行                     | ❌                            | ❌                           |
 
