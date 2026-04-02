@@ -1539,6 +1539,33 @@ def run_l3(task: RecursiveTask, budget: BudgetTracker) -> bool:
         return False
 
 
+def run_verification(task: RecursiveTask, budget: BudgetTracker) -> bool:
+    """Dispatch verification based on task complexity.
+
+    Verification levels:
+    - C:1-2 → L1 only (quick self-check)
+    - C:3-4 → L1 + L2 (adversarial review)
+    - C:5   → L1 + L2 + L3 (full test suite)
+
+    Returns True if all applicable verification levels pass, False otherwise.
+    """
+    # L1 always runs
+    if not run_l1(task, budget):
+        return False
+
+    # L2 for complexity >= 3
+    if task.complexity >= 3:
+        if not run_l2(task, budget):
+            return False
+
+    # L3 for complexity >= 5
+    if task.complexity >= 5:
+        if not run_l3(task, budget):
+            return False
+
+    return True
+
+
 def replan_subtree(
     task: RecursiveTask,
     dag: RecursiveDAG,

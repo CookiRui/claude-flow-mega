@@ -798,6 +798,8 @@ class TestContract:
 # ============================================================
 
 checkpoint_commit = ps.checkpoint_commit
+execute_leaf_task = ps.execute_leaf_task
+run_verification = ps.run_verification
 
 
 class TestCheckpointCommit:
@@ -868,3 +870,211 @@ class TestCheckpointCommit:
         commit_calls = [c for c in mock_run.call_args_list
                         if len(c[0][0]) > 1 and c[0][0][1] == "commit"]
         assert len(commit_calls) == 0
+
+
+# ============================================================
+# run_verification dispatching tests
+# ============================================================
+
+class TestRunVerification:
+
+    def _make_task(self, complexity=1):
+        return RecursiveTask(
+            id="v1", description="verify me",
+            acceptance_criteria="it works", dependencies=[], files=["a.py"],
+            complexity=complexity,
+        )
+
+    @patch.object(ps, "run_l1", return_value=True)
+    def test_c1_only_l1(self, mock_l1):
+        """C:1 dispatches only L1."""
+        task = self._make_task(complexity=1)
+        bt = BudgetTracker(5.0, 0.5)
+        result = run_verification(task, bt)
+        assert result is True
+        mock_l1.assert_called_once_with(task, bt)
+
+    @patch.object(ps, "run_l1", return_value=True)
+    def test_c2_only_l1(self, mock_l1):
+        """C:2 dispatches only L1."""
+        task = self._make_task(complexity=2)
+        bt = BudgetTracker(5.0, 0.5)
+        result = run_verification(task, bt)
+        assert result is True
+        mock_l1.assert_called_once_with(task, bt)
+
+    @patch.object(ps, "run_l2", return_value=True)
+    @patch.object(ps, "run_l1", return_value=True)
+    def test_c3_l1_and_l2(self, mock_l1, mock_l2):
+        """C:3 dispatches L1 + L2."""
+        task = self._make_task(complexity=3)
+        bt = BudgetTracker(5.0, 0.5)
+        result = run_verification(task, bt)
+        assert result is True
+        mock_l1.assert_called_once_with(task, bt)
+        mock_l2.assert_called_once_with(task, bt)
+
+    @patch.object(ps, "run_l2", return_value=True)
+    @patch.object(ps, "run_l1", return_value=True)
+    def test_c4_l1_and_l2(self, mock_l1, mock_l2):
+        """C:4 dispatches L1 + L2."""
+        task = self._make_task(complexity=4)
+        bt = BudgetTracker(5.0, 0.5)
+        result = run_verification(task, bt)
+        assert result is True
+        mock_l1.assert_called_once_with(task, bt)
+        mock_l2.assert_called_once_with(task, bt)
+
+    @patch.object(ps, "run_l3", return_value=True)
+    @patch.object(ps, "run_l2", return_value=True)
+    @patch.object(ps, "run_l1", return_value=True)
+    def test_c5_l1_l2_l3(self, mock_l1, mock_l2, mock_l3):
+        """C:5 dispatches L1 + L2 + L3."""
+        task = self._make_task(complexity=5)
+        bt = BudgetTracker(5.0, 0.5)
+        result = run_verification(task, bt)
+        assert result is True
+        mock_l1.assert_called_once_with(task, bt)
+        mock_l2.assert_called_once_with(task, bt)
+        mock_l3.assert_called_once_with(task, bt)
+
+    @patch.object(ps, "run_l1", return_value=False)
+    def test_l1_fail_short_circuits(self, mock_l1):
+        """If L1 fails, L2 and L3 are not called."""
+        task = self._make_task(complexity=5)
+        bt = BudgetTracker(5.0, 0.5)
+        result = run_verification(task, bt)
+        assert result is False
+        mock_l1.assert_called_once()
+
+    @patch.object(ps, "run_l2", return_value=False)
+    @patch.object(ps, "run_l1", return_value=True)
+    def test_l2_fail_short_circuits(self, mock_l1, mock_l2):
+        """If L2 fails, L3 is not called."""
+        task = self._make_task(complexity=5)
+        bt = BudgetTracker(5.0, 0.5)
+        result = run_verification(task, bt)
+        assert result is False
+        mock_l1.assert_called_once()
+        mock_l2.assert_called_once()
+
+    @patch.object(ps, "run_l2")
+    @patch.object(ps, "run_l1", return_value=True)
+    def test_c2_no_l2_called(self, mock_l1, mock_l2):
+        """C:2 should NOT call L2."""
+        task = self._make_task(complexity=2)
+        bt = BudgetTracker(5.0, 0.5)
+        run_verification(task, bt)
+        mock_l2.assert_not_called()
+
+    @patch.object(ps, "run_l3")
+    @patch.object(ps, "run_l2", return_value=True)
+    @patch.object(ps, "run_l1", return_value=True)
+    def test_c4_no_l3_called(self, mock_l1, mock_l2, mock_l3):
+        """C:4 should NOT call L3."""
+        task = self._make_task(complexity=4)
+        bt = BudgetTracker(5.0, 0.5)
+        run_verification(task, bt)
+        mock_l3.assert_not_called()
+
+
+# ============================================================
+# execute_leaf_task tests
+# ============================================================
+
+class TestExecuteLeafTask:
+
+    def _make_task(self, task_id="leaf1", desc="Implement feature", ac="Feature works"):
+        return RecursiveTask(
+            id=task_id, description=desc,
+            acceptance_criteria=ac, dependencies=[], files=["src/main.py"],
+        )
+
+    @patch.object(ps, "run_claude_session")
+    def test_prompt_contains_contract_text(self, mock_run):
+        """When contracts_text is provided, the prompt includes it."""
+        mock_run.return_value = {
+            "output": "done", "cost_usd": 0.05, "input_tokens": 100,
+            "output_tokens": 50, "duration_ms": 1000, "stop_reason": "end",
+            "success": True,
+        }
+        task = self._make_task()
+        bt = BudgetTracker(5.0, 0.5)
+        contract = "## Inputs\n- user_id: int\n## Outputs\n- auth_token: str"
+
+        execute_leaf_task(task, "Build auth", bt, contracts_text=contract)
+
+        prompt_arg = mock_run.call_args[0][0]
+        assert "Interface Contracts" in prompt_arg
+        assert "user_id: int" in prompt_arg
+        assert "auth_token: str" in prompt_arg
+        assert "You MUST respect" in prompt_arg
+
+    @patch.object(ps, "run_claude_session")
+    def test_prompt_without_contracts(self, mock_run):
+        """When contracts_text is empty, the prompt omits contract section."""
+        mock_run.return_value = {
+            "output": "done", "cost_usd": 0.02, "input_tokens": 50,
+            "output_tokens": 30, "duration_ms": 500, "stop_reason": "end",
+            "success": True,
+        }
+        task = self._make_task()
+        bt = BudgetTracker(5.0, 0.5)
+
+        execute_leaf_task(task, "Build auth", bt, contracts_text="")
+
+        prompt_arg = mock_run.call_args[0][0]
+        assert "Interface Contracts" not in prompt_arg
+        assert "You MUST respect" not in prompt_arg
+
+    @patch.object(ps, "run_claude_session")
+    def test_prompt_contains_task_details(self, mock_run):
+        """Prompt includes task id, description, acceptance criteria, and goal."""
+        mock_run.return_value = {
+            "output": "done", "cost_usd": 0.03, "input_tokens": 60,
+            "output_tokens": 40, "duration_ms": 700, "stop_reason": "end",
+            "success": True,
+        }
+        task = self._make_task(task_id="T2.a", desc="Add auth middleware", ac="Middleware validates JWT")
+        bt = BudgetTracker(5.0, 0.5)
+
+        execute_leaf_task(task, "Secure the API", bt)
+
+        prompt_arg = mock_run.call_args[0][0]
+        assert "T2.a" in prompt_arg
+        assert "Add auth middleware" in prompt_arg
+        assert "Middleware validates JWT" in prompt_arg
+        assert "Secure the API" in prompt_arg
+
+    @patch.object(ps, "run_claude_session")
+    def test_prompt_contains_files_section(self, mock_run):
+        """When task has files, prompt includes files to modify."""
+        mock_run.return_value = {
+            "output": "done", "cost_usd": 0.01, "input_tokens": 30,
+            "output_tokens": 20, "duration_ms": 300, "stop_reason": "end",
+            "success": True,
+        }
+        task = self._make_task()
+        bt = BudgetTracker(5.0, 0.5)
+
+        execute_leaf_task(task, "goal", bt)
+
+        prompt_arg = mock_run.call_args[0][0]
+        assert "Files to Modify" in prompt_arg
+        assert "src/main.py" in prompt_arg
+
+    @patch.object(ps, "run_claude_session")
+    def test_cost_recorded_on_budget(self, mock_run):
+        """Cost from run_claude_session is recorded on the budget tracker."""
+        mock_run.return_value = {
+            "output": "done", "cost_usd": 0.07, "input_tokens": 100,
+            "output_tokens": 50, "duration_ms": 1000, "stop_reason": "end",
+            "success": True,
+        }
+        task = self._make_task()
+        bt = BudgetTracker(5.0, 0.5)
+
+        execute_leaf_task(task, "goal", bt)
+
+        assert bt.total_spent == 0.07
+        assert "leaf1" in bt.task_costs
