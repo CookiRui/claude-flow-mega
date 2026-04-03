@@ -1,0 +1,78 @@
+{
+  "goal": "Complete the kanban web viewer at scripts/kanban-viewer.html. The file already has HTML scaffold and JSON loader. Read it first, then add missing features: 1) Recursive tree renderer for DAG nodes showing id/description/status/cost/commit 2) Status colors: done=green running=blue pending=gray failed=red 3) Summary bar at top 4) Auto-refresh every 3s 5) Drag-and-drop kanban.json 6) Dark theme 7) Collapsible subtrees.",
+  "start_time": "2026-04-03T14:49:45.484813",
+  "updated_at": "2026-04-03T14:55:27.867212",
+  "summary": {
+    "total": 7,
+    "done": 0,
+    "failed": 0,
+    "running": 0,
+    "pending": 7,
+    "total_cost_usd": 1.3445
+  },
+  "tree": [
+    {
+      "id": "task-1",
+      "description": "Verify existing recursive tree renderer correctly handles arbitrary DAG depth and displays id/description/status/cost/commit fields",
+      "status": "pending",
+      "complexity": 1,
+      "cost_usd": 0.22515875,
+      "commit_hash": "0584ba9",
+      "children": []
+    },
+    {
+      "id": "task-2",
+      "description": "Verify status color mapping (done=green, running=blue, pending=gray, failed=red) is correct in CSS and applied via status-badge classes",
+      "status": "pending",
+      "complexity": 1,
+      "cost_usd": 0.15546625,
+      "commit_hash": null,
+      "children": []
+    },
+    {
+      "id": "task-3",
+      "description": "Verify summary bar renders total/done/running/pending/failed/cost from kanban data.summary",
+      "status": "pending",
+      "complexity": 1,
+      "cost_usd": 0.22389175,
+      "commit_hash": null,
+      "children": []
+    },
+    {
+      "id": "task-4",
+      "description": "Verify auto-refresh polls every 3s, toggle checkbox starts/stops it, and green dot indicator reflects state",
+      "status": "pending",
+      "complexity": 1,
+      "cost_usd": 0.15123999999999999,
+      "commit_hash": null,
+      "children": []
+    },
+    {
+      "id": "task-5",
+      "description": "Verify drag-and-drop of kanban.json loads and renders the file, disabling auto-refresh on drop",
+      "status": "pending",
+      "complexity": 1,
+      "cost_usd": 0.14339799999999997,
+      "commit_hash": null,
+      "children": []
+    },
+    {
+      "id": "task-6",
+      "description": "Verify dark theme CSS variables produce a cohesive dark UI with proper contrast ratios",
+      "status": "pending",
+      "complexity": 1,
+      "cost_usd": 0.2348,
+      "commit_hash": null,
+      "children": []
+    },
+    {
+      "id": "task-7",
+      "description": "Verify collapsible subtrees toggle children visibility on header click with chevron rotation animation",
+      "status": "pending",
+      "complexity": 1,
+      "cost_usd": 0.2105315,
+      "commit_hash": null,
+      "children": []
+    }
+  ]
+}

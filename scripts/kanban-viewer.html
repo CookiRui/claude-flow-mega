@@ -121,6 +121,32 @@
       background: rgba(33, 150, 243, 0.05);
     }
 
+    /* Progress bar */
+    .progress-bar-container {
+      width: 100%;
+      padding: 0 1.5rem 0.5rem;
+      background: var(--summary-bg);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .progress-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: var(--bg-card);
+    }
+
+    .progress-segment {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-segment.done    { background: var(--status-done); }
+    .progress-segment.running { background: var(--status-running); }
+    .progress-segment.pending { background: var(--status-pending); }
+    .progress-segment.failed  { background: var(--status-failed); }
+
     /* Tree container */
     .tree-container {
       padding: 1rem 1.5rem;
@@ -289,6 +315,10 @@
     <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">Dark</button>
   </div>
 
+  <div class="progress-bar-container" id="progress-bar-container" style="display:none">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+
   <div class="goal-bar" id="goal-bar" style="display:none">
     <strong>Goal:</strong> <span id="goal-text"></span>
   </div>
@@ -398,6 +428,28 @@
         typeof summary.total_cost_usd === 'number'
           ? summary.total_cost_usd.toFixed(4)
           : '-';
+
+      // Progress bar
+      var total = summary.total || 0;
+      var bar = document.getElementById('progress-bar');
+      var barContainer = document.getElementById('progress-bar-container');
+      bar.innerHTML = '';
+      if (total > 0) {
+        barContainer.style.display = '';
+        var statuses = ['done', 'running', 'pending', 'failed'];
+        statuses.forEach(function (s) {
+          var count = summary[s] || 0;
+          if (count > 0) {
+            var seg = document.createElement('div');
+            seg.className = 'progress-segment ' + s;
+            seg.style.width = ((count / total) * 100).toFixed(2) + '%';
+            seg.title = s + ': ' + count + ' (' + ((count / total) * 100).toFixed(1) + '%)';
+            bar.appendChild(seg);
+          }
+        });
+      } else {
+        barContainer.style.display = 'none';
+      }
     }
 
     // ── Tree rendering ──
