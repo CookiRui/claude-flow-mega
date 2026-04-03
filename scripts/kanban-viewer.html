@@ -509,7 +509,25 @@
       }
     });
 
+    // ── Theme toggle ──
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      const btn = document.getElementById('theme-toggle');
+      btn.textContent = theme === 'dark' ? 'Dark' : 'Light';
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      localStorage.setItem('kanban-theme', next);
+    }
+
+    document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
     // ── Init ──
+    // Restore theme preference (default: dark)
+    applyTheme(localStorage.getItem('kanban-theme') || 'dark');
     startAutoRefresh();
   </script>
 </body>
