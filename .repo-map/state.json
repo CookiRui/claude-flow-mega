@@ -1,0 +1,2604 @@
+{
+  "last_commit": "629f37c",
+  "last_generated": "2026-03-30T16:29:41.650879",
+  "module_symbols": {
+    "_root": [
+      {
+        "name": "find_source_dir",
+        "type": "function",
+        "file": "install.py",
+        "line": 72,
+        "references": 1
+      },
+      {
+        "name": "detect_presets",
+        "type": "function",
+        "file": "install.py",
+        "line": 85,
+        "references": 1
+      },
+      {
+        "name": "copy_tree",
+        "type": "function",
+        "file": "install.py",
+        "line": 102,
+        "references": 1
+      },
+      {
+        "name": "install_core",
+        "type": "function",
+        "file": "install.py",
+        "line": 117,
+        "references": 1
+      },
+      {
+        "name": "install_preset",
+        "type": "function",
+        "file": "install.py",
+        "line": 173,
+        "references": 2
+      },
+      {
+        "name": "print_results",
+        "type": "function",
+        "file": "install.py",
+        "line": 193,
+        "references": 3
+      },
+      {
+        "name": "Task",
+        "type": "class",
+        "file": "scripts/persistent-solve.py",
+        "line": 58,
+        "references": 26
+      },
+      {
+        "name": "TaskDAG",
+        "type": "class",
+        "file": "scripts/persistent-solve.py",
+        "line": 70,
+        "references": 17
+      },
+      {
+        "name": "add_task",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 76,
+        "references": 0
+      },
+      {
+        "name": "get_ready_tasks",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 79,
+        "references": 3
+      },
+      {
+        "name": "get_parallel_groups",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 94,
+        "references": 4
+      },
+      {
+        "name": "mark_done",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 123,
+        "references": 2
+      },
+      {
+        "name": "mark_failed",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 128,
+        "references": 3
+      },
+      {
+        "name": "has_ready_tasks",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 138,
+        "references": 2
+      },
+      {
+        "name": "all_done",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 141,
+        "references": 1
+      },
+      {
+        "name": "summary",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 144,
+        "references": 9
+      },
+      {
+        "name": "BudgetTracker",
+        "type": "class",
+        "file": "scripts/persistent-solve.py",
+        "line": 156,
+        "references": 22
+      },
+      {
+        "name": "record",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 166,
+        "references": 8
+      },
+      {
+        "name": "remaining",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 172,
+        "references": 13
+      },
+      {
+        "name": "can_afford",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 176,
+        "references": 5
+      },
+      {
+        "name": "next_task_budget",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 184,
+        "references": 4
+      },
+      {
+        "name": "summary",
+        "type": "method",
+        "file": "scripts/persistent-solve.py",
+        "line": 188,
+        "references": 9
+      },
+      {
+        "name": "ensure_wip_dir",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 200,
+        "references": 1
+      },
+      {
+        "name": "read_wip",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 205,
+        "references": 3
+      },
+      {
+        "name": "parse_wip_status",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 214,
+        "references": 1
+      },
+      {
+        "name": "count_completed_tasks",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 236,
+        "references": 2
+      },
+      {
+        "name": "delete_wip",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 243,
+        "references": 0
+      },
+      {
+        "name": "build_first_round_prompt",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 293,
+        "references": 1
+      },
+      {
+        "name": "build_resume_prompt",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 302,
+        "references": 1
+      },
+      {
+        "name": "_parse_claude_json",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 324,
+        "references": 1
+      },
+      {
+        "name": "run_claude_session",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 374,
+        "references": 11
+      },
+      {
+        "name": "build_clarify_prompt",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 436,
+        "references": 5
+      },
+      {
+        "name": "build_plan_prompt",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 471,
+        "references": 2
+      },
+      {
+        "name": "parse_dag_response",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 511,
+        "references": 8
+      },
+      {
+        "name": "clarify_goal",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 553,
+        "references": 10
+      },
+      {
+        "name": "plan_dag",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 630,
+        "references": 1
+      },
+      {
+        "name": "build_task_prompt",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 649,
+        "references": 1
+      },
+      {
+        "name": "execute_task",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 677,
+        "references": 2
+      },
+      {
+        "name": "execute_parallel",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 689,
+        "references": 1
+      },
+      {
+        "name": "execute_dag",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 714,
+        "references": 1
+      },
+      {
+        "name": "persistent_solve",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 755,
+        "references": 1
+      },
+      {
+        "name": "_run_dag_mode",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 798,
+        "references": 1
+      },
+      {
+        "name": "_run_legacy_mode",
+        "type": "function",
+        "file": "scripts/persistent-solve.py",
+        "line": 869,
+        "references": 1
+      },
+      {
+        "name": "load_config",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 116,
+        "references": 3
+      },
+      {
+        "name": "detect_modules",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 128,
+        "references": 13
+      },
+      {
+        "name": "classify_file_to_module",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 185,
+        "references": 5
+      },
+      {
+        "name": "scan_files",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 214,
+        "references": 5
+      },
+      {
+        "name": "extract_symbols",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 230,
+        "references": 4
+      },
+      {
+        "name": "count_references_scoped",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 262,
+        "references": 2
+      },
+      {
+        "name": "load_state",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 286,
+        "references": 2
+      },
+      {
+        "name": "save_state",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 298,
+        "references": 1
+      },
+      {
+        "name": "get_current_commit",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 306,
+        "references": 1
+      },
+      {
+        "name": "get_changed_files",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 320,
+        "references": 3
+      },
+      {
+        "name": "detect_primary_language",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 357,
+        "references": 2
+      },
+      {
+        "name": "compute_cross_module_refs",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 377,
+        "references": 1
+      },
+      {
+        "name": "generate_l0",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 416,
+        "references": 2
+      },
+      {
+        "name": "generate_l1",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 465,
+        "references": 2
+      },
+      {
+        "name": "build_module_data",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 499,
+        "references": 2
+      },
+      {
+        "name": "build_layered_map",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 559,
+        "references": 1
+      },
+      {
+        "name": "build_flat_map",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 676,
+        "references": 1
+      },
+      {
+        "name": "format_flat_json",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 701,
+        "references": 1
+      },
+      {
+        "name": "format_flat_markdown",
+        "type": "function",
+        "file": "scripts/repo-map.py",
+        "line": 705,
+        "references": 1
+      },
+      {
+        "name": "load_config",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 56,
+        "references": 3
+      },
+      {
+        "name": "detect_modules",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 68,
+        "references": 13
+      },
+      {
+        "name": "classify_file_to_module",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 110,
+        "references": 5
+      },
+      {
+        "name": "get_affected_files_from_git",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 129,
+        "references": 1
+      },
+      {
+        "name": "get_affected_modules",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 155,
+        "references": 2
+      },
+      {
+        "name": "find_root_constitutions",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 173,
+        "references": 1
+      },
+      {
+        "name": "find_root_rules",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 182,
+        "references": 1
+      },
+      {
+        "name": "find_module_constitutions",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 193,
+        "references": 1
+      },
+      {
+        "name": "find_module_rules",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 208,
+        "references": 1
+      },
+      {
+        "name": "resolve_all",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 225,
+        "references": 1
+      },
+      {
+        "name": "format_inject",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 256,
+        "references": 1
+      },
+      {
+        "name": "format_json_output",
+        "type": "function",
+        "file": "scripts/scope-loader.py",
+        "line": 293,
+        "references": 1
+      },
+      {
+        "name": "detect_modules",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 45,
+        "references": 13
+      },
+      {
+        "name": "affected_modules",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 94,
+        "references": 20
+      },
+      {
+        "name": "load_module_constitution",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 135,
+        "references": 3
+      },
+      {
+        "name": "load_module_rules",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 168,
+        "references": 3
+      },
+      {
+        "name": "merge_rules",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 212,
+        "references": 3
+      },
+      {
+        "name": "get_scoped_rules",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 241,
+        "references": 3
+      },
+      {
+        "name": "get_changed_files_from_git",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 293,
+        "references": 1
+      },
+      {
+        "name": "format_json",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 325,
+        "references": 1
+      },
+      {
+        "name": "format_markdown",
+        "type": "function",
+        "file": "scripts/scoped-rules.py",
+        "line": 330,
+        "references": 1
+      },
+      {
+        "name": "TestTaskDAG",
+        "type": "class",
+        "file": "tests/test_persistent_solve.py",
+        "line": 31,
+        "references": 0
+      },
+      {
+        "name": "_make_tasks",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 33,
+        "references": 5
+      },
+      {
+        "name": "test_get_ready_tasks_initial",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 43,
+        "references": 0
+      },
+      {
+        "name": "test_get_ready_tasks_after_done",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 48,
+        "references": 0
+      },
+      {
+        "name": "test_mark_failed_retries",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 55,
+        "references": 0
+      },
+      {
+        "name": "test_has_ready_tasks",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 65,
+        "references": 0
+      },
+      {
+        "name": "test_all_done",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 73,
+        "references": 0
+      },
+      {
+        "name": "test_parallel_groups_no_conflict",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 80,
+        "references": 0
+      },
+      {
+        "name": "test_parallel_groups_with_conflict",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 92,
+        "references": 0
+      },
+      {
+        "name": "test_parallel_groups_empty_files_sequential",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 104,
+        "references": 0
+      },
+      {
+        "name": "test_single_task_parallel",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 118,
+        "references": 0
+      },
+      {
+        "name": "TestBudgetTracker",
+        "type": "class",
+        "file": "tests/test_persistent_solve.py",
+        "line": 131,
+        "references": 0
+      },
+      {
+        "name": "test_initial_state",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 133,
+        "references": 0
+      },
+      {
+        "name": "test_record_and_remaining",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 138,
+        "references": 0
+      },
+      {
+        "name": "test_budget_exhausted",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 144,
+        "references": 0
+      },
+      {
+        "name": "test_next_task_budget_capped",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 150,
+        "references": 0
+      },
+      {
+        "name": "test_thread_safety",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 155,
+        "references": 0
+      },
+      {
+        "name": "TestParseDagResponse",
+        "type": "class",
+        "file": "tests/test_persistent_solve.py",
+        "line": 174,
+        "references": 0
+      },
+      {
+        "name": "test_valid_json",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 176,
+        "references": 0
+      },
+      {
+        "name": "test_no_json_fence_fallback",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 192,
+        "references": 0
+      },
+      {
+        "name": "test_invalid_json_fallback",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 197,
+        "references": 0
+      },
+      {
+        "name": "test_non_array_json_fallback",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 202,
+        "references": 0
+      },
+      {
+        "name": "test_empty_response_fallback",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 207,
+        "references": 0
+      },
+      {
+        "name": "TestBuildClarifyPrompt",
+        "type": "class",
+        "file": "tests/test_persistent_solve.py",
+        "line": 216,
+        "references": 0
+      },
+      {
+        "name": "test_contains_goal",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 218,
+        "references": 0
+      },
+      {
+        "name": "test_asks_for_json",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 222,
+        "references": 0
+      },
+      {
+        "name": "TestClarifyGoal",
+        "type": "class",
+        "file": "tests/test_persistent_solve.py",
+        "line": 233,
+        "references": 0
+      },
+      {
+        "name": "_mock_session",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 235,
+        "references": 6
+      },
+      {
+        "name": "test_clear_goal_passes_through",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 250,
+        "references": 0
+      },
+      {
+        "name": "test_ambiguous_goal_asks_user",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 258,
+        "references": 0
+      },
+      {
+        "name": "test_ambiguous_goal_accept_defaults",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 271,
+        "references": 0
+      },
+      {
+        "name": "test_user_aborts",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 284,
+        "references": 0
+      },
+      {
+        "name": "test_unparseable_response_passes_through",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 294,
+        "references": 0
+      },
+      {
+        "name": "test_eof_on_input_passes_through",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 305,
+        "references": 0
+      },
+      {
+        "name": "test_budget_recorded",
+        "type": "method",
+        "file": "tests/test_persistent_solve.py",
+        "line": 316,
+        "references": 0
+      },
+      {
+        "name": "TestScanFiles",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 18,
+        "references": 0
+      },
+      {
+        "name": "test_scan_finds_python_files",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 39,
+        "references": 0
+      },
+      {
+        "name": "test_scan_with_subdir",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 46,
+        "references": 0
+      },
+      {
+        "name": "test_scan_nonexistent_subdir_returns_empty",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 52,
+        "references": 0
+      },
+      {
+        "name": "TestExtractSymbols",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 57,
+        "references": 0
+      },
+      {
+        "name": "test_extract_class_and_functions",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 73,
+        "references": 0
+      },
+      {
+        "name": "test_symbols_have_required_fields",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 80,
+        "references": 0
+      },
+      {
+        "name": "test_noise_names_are_skipped",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 88,
+        "references": 0
+      },
+      {
+        "name": "TestDetectModules",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 101,
+        "references": 0
+      },
+      {
+        "name": "test_detects_source_directories_as_modules",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 123,
+        "references": 0
+      },
+      {
+        "name": "test_excludes_non_module_dirs",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 130,
+        "references": 0
+      },
+      {
+        "name": "test_includes_root_pseudo_module",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 136,
+        "references": 0
+      },
+      {
+        "name": "test_explicit_config_modules",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 142,
+        "references": 0
+      },
+      {
+        "name": "TestClassifyFileToModule",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 157,
+        "references": 0
+      },
+      {
+        "name": "test_classify_file_in_module",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 167,
+        "references": 0
+      },
+      {
+        "name": "test_classify_root_file",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 173,
+        "references": 0
+      },
+      {
+        "name": "test_classify_unknown_path_falls_back_to_root",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 179,
+        "references": 0
+      },
+      {
+        "name": "test_classify_without_root_returns_unclassified",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 186,
+        "references": 0
+      },
+      {
+        "name": "TestBuildFlatMap",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 197,
+        "references": 0
+      },
+      {
+        "name": "test_build_returns_expected_structure",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 208,
+        "references": 0
+      },
+      {
+        "name": "TestBuildModuleData",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 216,
+        "references": 0
+      },
+      {
+        "name": "test_builds_data_for_all_modules",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 236,
+        "references": 0
+      },
+      {
+        "name": "test_only_modules_filter",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 245,
+        "references": 0
+      },
+      {
+        "name": "TestGenerateL0",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 253,
+        "references": 0
+      },
+      {
+        "name": "test_l0_contains_module_table",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 256,
+        "references": 0
+      },
+      {
+        "name": "test_l0_shows_cross_refs",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 272,
+        "references": 0
+      },
+      {
+        "name": "TestGenerateL1",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 285,
+        "references": 0
+      },
+      {
+        "name": "test_l1_shows_symbols_with_lines",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 288,
+        "references": 0
+      },
+      {
+        "name": "test_l1_groups_by_file",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 300,
+        "references": 0
+      },
+      {
+        "name": "TestGetChangedFiles",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 311,
+        "references": 0
+      },
+      {
+        "name": "test_returns_none_without_last_commit",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 315,
+        "references": 0
+      },
+      {
+        "name": "test_collects_from_multiple_git_commands",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 321,
+        "references": 0
+      },
+      {
+        "name": "side_effect",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 323,
+        "references": 3
+      },
+      {
+        "name": "test_returns_none_on_git_failure",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 341,
+        "references": 0
+      },
+      {
+        "name": "TestStateManagement",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 347,
+        "references": 0
+      },
+      {
+        "name": "test_load_state_returns_empty_when_no_file",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 353,
+        "references": 0
+      },
+      {
+        "name": "test_save_and_load_roundtrip",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 357,
+        "references": 0
+      },
+      {
+        "name": "test_load_config_returns_defaults",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 363,
+        "references": 0
+      },
+      {
+        "name": "TestFlatMarkdownFormat",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 369,
+        "references": 0
+      },
+      {
+        "name": "test_format_includes_header",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 372,
+        "references": 0
+      },
+      {
+        "name": "TestDetectPrimaryLanguage",
+        "type": "class",
+        "file": "tests/test_repo_map.py",
+        "line": 387,
+        "references": 0
+      },
+      {
+        "name": "test_python_detected",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 390,
+        "references": 0
+      },
+      {
+        "name": "test_empty_symbols_returns_dash",
+        "type": "method",
+        "file": "tests/test_repo_map.py",
+        "line": 398,
+        "references": 0
+      },
+      {
+        "name": "TestDetectModules",
+        "type": "class",
+        "file": "tests/test_scoped_rules.py",
+        "line": 17,
+        "references": 0
+      },
+      {
+        "name": "test_detect_modules_finds_scoped_dirs",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 31,
+        "references": 0
+      },
+      {
+        "name": "test_detect_modules_includes_root",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 38,
+        "references": 0
+      },
+      {
+        "name": "test_detect_modules_returns_relative_paths",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 43,
+        "references": 0
+      },
+      {
+        "name": "TestAffectedModules",
+        "type": "class",
+        "file": "tests/test_scoped_rules.py",
+        "line": 50,
+        "references": 0
+      },
+      {
+        "name": "test_files_in_module_a_affect_module_a",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 60,
+        "references": 0
+      },
+      {
+        "name": "test_files_in_root_affect_root",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 67,
+        "references": 0
+      },
+      {
+        "name": "test_files_in_non_module_dir_affect_root",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 73,
+        "references": 0
+      },
+      {
+        "name": "test_empty_changed_files_returns_empty",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 80,
+        "references": 0
+      },
+      {
+        "name": "TestLoadModuleRules",
+        "type": "class",
+        "file": "tests/test_scoped_rules.py",
+        "line": 85,
+        "references": 0
+      },
+      {
+        "name": "test_load_root_rules",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 115,
+        "references": 0
+      },
+      {
+        "name": "test_load_module_rules",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 121,
+        "references": 0
+      },
+      {
+        "name": "test_load_module_constitution",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 126,
+        "references": 0
+      },
+      {
+        "name": "test_load_root_constitution",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 131,
+        "references": 0
+      },
+      {
+        "name": "TestRulePriority",
+        "type": "class",
+        "file": "tests/test_scoped_rules.py",
+        "line": 137,
+        "references": 0
+      },
+      {
+        "name": "test_module_rules_override_root_on_conflict",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 140,
+        "references": 0
+      },
+      {
+        "name": "test_non_conflicting_rules_are_both_included",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 153,
+        "references": 0
+      },
+      {
+        "name": "test_empty_module_rules_returns_root",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 163,
+        "references": 0
+      },
+      {
+        "name": "TestScopedRulesForDiff",
+        "type": "class",
+        "file": "tests/test_scoped_rules.py",
+        "line": 171,
+        "references": 0
+      },
+      {
+        "name": "test_get_scoped_rules_for_module_change",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 197,
+        "references": 0
+      },
+      {
+        "name": "test_get_scoped_rules_for_root_change",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 207,
+        "references": 0
+      },
+      {
+        "name": "test_output_format_is_json_serializable",
+        "type": "method",
+        "file": "tests/test_scoped_rules.py",
+        "line": 215,
+        "references": 0
+      }
+    ],
+    "presets": [
+      {
+        "name": "AutoTestBridge",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/AutoTestBridge.cs",
+        "line": 9,
+        "references": 3
+      },
+      {
+        "name": "Awake",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/AutoTestBridge.cs",
+        "line": 17,
+        "references": 0
+      },
+      {
+        "name": "LateUpdate",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/AutoTestBridge.cs",
+        "line": 30,
+        "references": 0
+      },
+      {
+        "name": "OnDestroy",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/AutoTestBridge.cs",
+        "line": 35,
+        "references": 0
+      },
+      {
+        "name": "SetMovementInput",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/AutoTestBridge.cs",
+        "line": 43,
+        "references": 0
+      },
+      {
+        "name": "PressButton",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/AutoTestBridge.cs",
+        "line": 48,
+        "references": 1
+      },
+      {
+        "name": "ReleaseButton",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/AutoTestBridge.cs",
+        "line": 53,
+        "references": 1
+      },
+      {
+        "name": "FindGameObject",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/AutoTestBridge.cs",
+        "line": 60,
+        "references": 0
+      },
+      {
+        "name": "IInputProvider",
+        "type": "interface",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/IInputProvider.cs",
+        "line": 9,
+        "references": 0
+      },
+      {
+        "name": "TestInputProvider",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 11,
+        "references": 2
+      },
+      {
+        "name": "SetMovement",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 18,
+        "references": 0
+      },
+      {
+        "name": "PressButton",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 20,
+        "references": 1
+      },
+      {
+        "name": "ReleaseButton",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 26,
+        "references": 1
+      },
+      {
+        "name": "ClearFrameState",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 35,
+        "references": 0
+      },
+      {
+        "name": "GetMovementInput",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 41,
+        "references": 0
+      },
+      {
+        "name": "GetButtonDown",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 42,
+        "references": 1
+      },
+      {
+        "name": "GetButtonUp",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 43,
+        "references": 1
+      },
+      {
+        "name": "GetButton",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 44,
+        "references": 1
+      },
+      {
+        "name": "Reset",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/TestInputProvider.cs",
+        "line": 46,
+        "references": 0
+      },
+      {
+        "name": "UnityInputProvider",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/UnityInputProvider.cs",
+        "line": 8,
+        "references": 0
+      },
+      {
+        "name": "GetMovementInput",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/UnityInputProvider.cs",
+        "line": 10,
+        "references": 0
+      },
+      {
+        "name": "GetButtonDown",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/UnityInputProvider.cs",
+        "line": 15,
+        "references": 1
+      },
+      {
+        "name": "GetButtonUp",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/UnityInputProvider.cs",
+        "line": 16,
+        "references": 1
+      },
+      {
+        "name": "GetButton",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Gameplay/AutoTest/UnityInputProvider.cs",
+        "line": 17,
+        "references": 1
+      },
+      {
+        "name": "SanityTests",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tests/Editor/SanityTests.cs",
+        "line": 8,
+        "references": 0
+      },
+      {
+        "name": "TrueIsTrue",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tests/Editor/SanityTests.cs",
+        "line": 11,
+        "references": 0
+      },
+      {
+        "name": "AssemblyReferencesWork",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tests/Editor/SanityTests.cs",
+        "line": 17,
+        "references": 0
+      },
+      {
+        "name": "AutoTestActionAttribute",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/AutoTestAttribute.cs",
+        "line": 6,
+        "references": 1
+      },
+      {
+        "name": "AutoTestConditionAttribute",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/AutoTestAttribute.cs",
+        "line": 13,
+        "references": 1
+      },
+      {
+        "name": "LogCapture",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/LogCapture.cs",
+        "line": 7,
+        "references": 4
+      },
+      {
+        "name": "GetErrors",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/LogCapture.cs",
+        "line": 36,
+        "references": 1
+      },
+      {
+        "name": "OnLogMessage",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/LogCapture.cs",
+        "line": 53,
+        "references": 2
+      },
+      {
+        "name": "Clear",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/LogCapture.cs",
+        "line": 68,
+        "references": 6
+      },
+      {
+        "name": "Dispose",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/LogCapture.cs",
+        "line": 70,
+        "references": 0
+      },
+      {
+        "name": "TestAction",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TestAction.cs",
+        "line": 7,
+        "references": 2
+      },
+      {
+        "name": "Configure",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TestAction.cs",
+        "line": 19,
+        "references": 2
+      },
+      {
+        "name": "TestCase",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TestCase.cs",
+        "line": 5,
+        "references": 1
+      },
+      {
+        "name": "TestCondition",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TestCondition.cs",
+        "line": 5,
+        "references": 3
+      },
+      {
+        "name": "Configure",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TestCondition.cs",
+        "line": 20,
+        "references": 2
+      },
+      {
+        "name": "TestStep",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TestStep.cs",
+        "line": 3,
+        "references": 6
+      },
+      {
+        "name": "FailPolicy",
+        "type": "enum",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TestStep.cs",
+        "line": 18,
+        "references": 5
+      },
+      {
+        "name": "StepResult",
+        "type": "enum",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TestStep.cs",
+        "line": 19,
+        "references": 13
+      },
+      {
+        "name": "TypeRegistry",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TypeRegistry.cs",
+        "line": 8,
+        "references": 2
+      },
+      {
+        "name": "EnsureInitialized",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TypeRegistry.cs",
+        "line": 24,
+        "references": 4
+      },
+      {
+        "name": "ScanAssemblies",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TypeRegistry.cs",
+        "line": 31,
+        "references": 1
+      },
+      {
+        "name": "CreateAction",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TypeRegistry.cs",
+        "line": 71,
+        "references": 0
+      },
+      {
+        "name": "CreateCondition",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Core/TypeRegistry.cs",
+        "line": 79,
+        "references": 0
+      },
+      {
+        "name": "TestResultBuilder",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 7,
+        "references": 0
+      },
+      {
+        "name": "Build",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 9,
+        "references": 0
+      },
+      {
+        "name": "AppendPhase",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 55,
+        "references": 2
+      },
+      {
+        "name": "AppendSteps",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 65,
+        "references": 2
+      },
+      {
+        "name": "AppendSummary",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 93,
+        "references": 1
+      },
+      {
+        "name": "AppendErrors",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 120,
+        "references": 1
+      },
+      {
+        "name": "AppendContextDict",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 136,
+        "references": 2
+      },
+      {
+        "name": "AppendValue",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 150,
+        "references": 2
+      },
+      {
+        "name": "AppendString",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 204,
+        "references": 12
+      },
+      {
+        "name": "AppendNumber",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 209,
+        "references": 11
+      },
+      {
+        "name": "AppendNumber",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 214,
+        "references": 11
+      },
+      {
+        "name": "EscapeJson",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Results/TestResultBuilder.cs",
+        "line": 219,
+        "references": 10
+      },
+      {
+        "name": "AutoTestRunner",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/AutoTestRunner.cs",
+        "line": 9,
+        "references": 5
+      },
+      {
+        "name": "RunSingleStep",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/AutoTestRunner.cs",
+        "line": 51,
+        "references": 1
+      },
+      {
+        "name": "JsonTestCaseParser",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/JsonTestCaseParser.cs",
+        "line": 8,
+        "references": 0
+      },
+      {
+        "name": "Parse",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/JsonTestCaseParser.cs",
+        "line": 10,
+        "references": 9
+      },
+      {
+        "name": "ParseStep",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/JsonTestCaseParser.cs",
+        "line": 72,
+        "references": 1
+      },
+      {
+        "name": "ParseAction",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/JsonTestCaseParser.cs",
+        "line": 117,
+        "references": 1
+      },
+      {
+        "name": "ParseCondition",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/JsonTestCaseParser.cs",
+        "line": 145,
+        "references": 2
+      },
+      {
+        "name": "ConvertJToken",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/JsonTestCaseParser.cs",
+        "line": 172,
+        "references": 4
+      },
+      {
+        "name": "SubstituteParameters",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/JsonTestCaseParser.cs",
+        "line": 199,
+        "references": 1
+      },
+      {
+        "name": "TestOrchestrator",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/TestOrchestrator.cs",
+        "line": 10,
+        "references": 0
+      },
+      {
+        "name": "Execute",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/TestOrchestrator.cs",
+        "line": 12,
+        "references": 3
+      },
+      {
+        "name": "ComputeStatus",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/TestOrchestrator.cs",
+        "line": 120,
+        "references": 1
+      },
+      {
+        "name": "TestResultData",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/TestOrchestrator.cs",
+        "line": 136,
+        "references": 2
+      },
+      {
+        "name": "PhaseResult",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/AutoTest/Runner/TestOrchestrator.cs",
+        "line": 150,
+        "references": 4
+      },
+      {
+        "name": "BatchModePaths",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchModePaths.cs",
+        "line": 11,
+        "references": 6
+      },
+      {
+        "name": "EnsureDirectories",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchModePaths.cs",
+        "line": 24,
+        "references": 1
+      },
+      {
+        "name": "CleanupBeforeRun",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchModePaths.cs",
+        "line": 33,
+        "references": 2
+      },
+      {
+        "name": "BatchPlayModeRunner",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchPlayModeRunner.cs",
+        "line": 14,
+        "references": 16
+      },
+      {
+        "name": "Run",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchPlayModeRunner.cs",
+        "line": 16,
+        "references": 1
+      },
+      {
+        "name": "RunTest",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchPlayModeRunner.cs",
+        "line": 42,
+        "references": 1
+      },
+      {
+        "name": "GetArgValue",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchPlayModeRunner.cs",
+        "line": 124,
+        "references": 4
+      },
+      {
+        "name": "GetVarArgs",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchPlayModeRunner.cs",
+        "line": 135,
+        "references": 1
+      },
+      {
+        "name": "SerializeVars",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchPlayModeRunner.cs",
+        "line": 152,
+        "references": 1
+      },
+      {
+        "name": "EscapeJson",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchPlayModeRunner.cs",
+        "line": 168,
+        "references": 10
+      },
+      {
+        "name": "EnsureScene",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchPlayModeRunner.cs",
+        "line": 174,
+        "references": 2
+      },
+      {
+        "name": "BatchResultWriter",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchResultWriter.cs",
+        "line": 11,
+        "references": 6
+      },
+      {
+        "name": "WriteResult",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchResultWriter.cs",
+        "line": 13,
+        "references": 2
+      },
+      {
+        "name": "WriteError",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchResultWriter.cs",
+        "line": 31,
+        "references": 3
+      },
+      {
+        "name": "EscapeJson",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/BatchResultWriter.cs",
+        "line": 38,
+        "references": 10
+      },
+      {
+        "name": "PlayModeTestLauncher",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 16,
+        "references": 23
+      },
+      {
+        "name": "SaveSmokeTestAndEnterPlayMode",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 61,
+        "references": 1
+      },
+      {
+        "name": "SaveAutoTestAndEnterPlayMode",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 79,
+        "references": 0
+      },
+      {
+        "name": "IsGameReady",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 95,
+        "references": 2
+      },
+      {
+        "name": "HasPendingCommand",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 100,
+        "references": 3
+      },
+      {
+        "name": "OnPlayModeChanged",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 105,
+        "references": 1
+      },
+      {
+        "name": "WaitForPlayMode",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 120,
+        "references": 5
+      },
+      {
+        "name": "TryStartPollingIfNeeded",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 145,
+        "references": 2
+      },
+      {
+        "name": "StartPolling",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 154,
+        "references": 2
+      },
+      {
+        "name": "PollGameReady",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 162,
+        "references": 2
+      },
+      {
+        "name": "PollGameReadyInternal",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 180,
+        "references": 1
+      },
+      {
+        "name": "StopPolling",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 217,
+        "references": 3
+      },
+      {
+        "name": "ExecutePendingCommand",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 223,
+        "references": 1
+      },
+      {
+        "name": "ExecuteAutoTest",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 268,
+        "references": 2
+      },
+      {
+        "name": "ClearPendingCommand",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 311,
+        "references": 3
+      },
+      {
+        "name": "FailPendingCommandAndCleanup",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/PlayModeTestLauncher.cs",
+        "line": 317,
+        "references": 5
+      },
+      {
+        "name": "IUnityOpsHandler",
+        "type": "interface",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/IUnityOpsHandler.cs",
+        "line": 7,
+        "references": 1
+      },
+      {
+        "name": "OpsCommandEnvelope",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 9,
+        "references": 19
+      },
+      {
+        "name": "OpsResult",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 18,
+        "references": 114
+      },
+      {
+        "name": "Success",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 27,
+        "references": 17
+      },
+      {
+        "name": "Error",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 40,
+        "references": 68
+      },
+      {
+        "name": "CreateSceneParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 56,
+        "references": 0
+      },
+      {
+        "name": "EditSceneParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 64,
+        "references": 0
+      },
+      {
+        "name": "SceneOperation",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 71,
+        "references": 2
+      },
+      {
+        "name": "CreatePrefabParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 79,
+        "references": 0
+      },
+      {
+        "name": "EditPrefabParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 86,
+        "references": 0
+      },
+      {
+        "name": "CreateMaterialParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 93,
+        "references": 0
+      },
+      {
+        "name": "CreateFolderParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 101,
+        "references": 0
+      },
+      {
+        "name": "ListAssetsParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 107,
+        "references": 1
+      },
+      {
+        "name": "ComponentOperationParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 116,
+        "references": 4
+      },
+      {
+        "name": "AddComponentParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 123,
+        "references": 0
+      },
+      {
+        "name": "RemoveComponentParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 129,
+        "references": 0
+      },
+      {
+        "name": "ModifyComponentParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 136,
+        "references": 0
+      },
+      {
+        "name": "InspectComponentParams",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 144,
+        "references": 0
+      },
+      {
+        "name": "GameObjectDesc",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 153,
+        "references": 6
+      },
+      {
+        "name": "TransformDesc",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 165,
+        "references": 1
+      },
+      {
+        "name": "ComponentDesc",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsCommand.cs",
+        "line": 173,
+        "references": 2
+      },
+      {
+        "name": "UnityOpsRunner",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsRunner.cs",
+        "line": 15,
+        "references": 0
+      },
+      {
+        "name": "Run",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsRunner.cs",
+        "line": 40,
+        "references": 1
+      },
+      {
+        "name": "GetCommandFilePath",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsRunner.cs",
+        "line": 89,
+        "references": 1
+      },
+      {
+        "name": "WriteResultAndExit",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsRunner.cs",
+        "line": 100,
+        "references": 3
+      },
+      {
+        "name": "WriteErrorAndExit",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/UnityOpsRunner.cs",
+        "line": 110,
+        "references": 4
+      },
+      {
+        "name": "AssetHandler",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 13,
+        "references": 7
+      },
+      {
+        "name": "Execute",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 15,
+        "references": 3
+      },
+      {
+        "name": "CreateMaterial",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 26,
+        "references": 1
+      },
+      {
+        "name": "CreateFolder",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 86,
+        "references": 3
+      },
+      {
+        "name": "ListAssets",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 115,
+        "references": 1
+      },
+      {
+        "name": "ApplyMaterialProperties",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 147,
+        "references": 1
+      },
+      {
+        "name": "ApplyMaterialProperty",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 162,
+        "references": 1
+      },
+      {
+        "name": "NormalizePath",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 220,
+        "references": 18
+      },
+      {
+        "name": "AssetExists",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 222,
+        "references": 16
+      },
+      {
+        "name": "EnsureParentFolder",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 227,
+        "references": 3
+      },
+      {
+        "name": "AssetInfo",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/AssetHandler.cs",
+        "line": 243,
+        "references": 2
+      },
+      {
+        "name": "PrefabHandler",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 12,
+        "references": 12
+      },
+      {
+        "name": "Execute",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 14,
+        "references": 3
+      },
+      {
+        "name": "CreatePrefab",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 30,
+        "references": 1
+      },
+      {
+        "name": "EditPrefab",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 63,
+        "references": 1
+      },
+      {
+        "name": "ListPrefabs",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 131,
+        "references": 1
+      },
+      {
+        "name": "PrefabAddComponent",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 148,
+        "references": 1
+      },
+      {
+        "name": "PrefabRemoveComponent",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 188,
+        "references": 1
+      },
+      {
+        "name": "PrefabModifyComponent",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 245,
+        "references": 1
+      },
+      {
+        "name": "PrefabListComponents",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 292,
+        "references": 1
+      },
+      {
+        "name": "PrefabInspectComponent",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 319,
+        "references": 1
+      },
+      {
+        "name": "BuildGameObject",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 382,
+        "references": 7
+      },
+      {
+        "name": "FindTargetInPrefab",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 426,
+        "references": 5
+      },
+      {
+        "name": "ApplyModifications",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 438,
+        "references": 2
+      },
+      {
+        "name": "BuildComponentList",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 469,
+        "references": 2
+      },
+      {
+        "name": "GetComponentTypeNames",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 493,
+        "references": 6
+      },
+      {
+        "name": "SetComponentProperties",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 503,
+        "references": 2
+      },
+      {
+        "name": "SetSerializedPropertyValue",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 519,
+        "references": 2
+      },
+      {
+        "name": "GetSerializedPropertyValue",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 538,
+        "references": 2
+      },
+      {
+        "name": "ResolveComponentType",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 551,
+        "references": 12
+      },
+      {
+        "name": "FindChildByName",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 574,
+        "references": 4
+      },
+      {
+        "name": "NormalizePath",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 588,
+        "references": 18
+      },
+      {
+        "name": "AssetExists",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 590,
+        "references": 16
+      },
+      {
+        "name": "EnsureParentFolder",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/PrefabHandler.cs",
+        "line": 595,
+        "references": 3
+      },
+      {
+        "name": "SceneHandler",
+        "type": "class",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 14,
+        "references": 13
+      },
+      {
+        "name": "Execute",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 16,
+        "references": 3
+      },
+      {
+        "name": "CreateScene",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 32,
+        "references": 1
+      },
+      {
+        "name": "EditScene",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 71,
+        "references": 1
+      },
+      {
+        "name": "ListScenes",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 139,
+        "references": 1
+      },
+      {
+        "name": "SceneAddComponent",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 150,
+        "references": 1
+      },
+      {
+        "name": "SceneRemoveComponent",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 184,
+        "references": 1
+      },
+      {
+        "name": "SceneModifyComponent",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 235,
+        "references": 1
+      },
+      {
+        "name": "SceneListComponents",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 276,
+        "references": 1
+      },
+      {
+        "name": "SceneInspectComponent",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 296,
+        "references": 1
+      },
+      {
+        "name": "BuildGameObject",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 353,
+        "references": 7
+      },
+      {
+        "name": "FindSceneGameObject",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 397,
+        "references": 5
+      },
+      {
+        "name": "ApplyModifications",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 419,
+        "references": 2
+      },
+      {
+        "name": "BuildComponentList",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 459,
+        "references": 2
+      },
+      {
+        "name": "GetComponentTypeNames",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 483,
+        "references": 6
+      },
+      {
+        "name": "SetComponentProperties",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 493,
+        "references": 2
+      },
+      {
+        "name": "SetSerializedPropertyValue",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 509,
+        "references": 2
+      },
+      {
+        "name": "GetSerializedPropertyValue",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 528,
+        "references": 2
+      },
+      {
+        "name": "ResolveComponentType",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 541,
+        "references": 12
+      },
+      {
+        "name": "AddSceneToBuildSettings",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 567,
+        "references": 1
+      },
+      {
+        "name": "NormalizePath",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 578,
+        "references": 18
+      },
+      {
+        "name": "AssetExists",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 580,
+        "references": 16
+      },
+      {
+        "name": "EnsureParentFolder",
+        "type": "method",
+        "file": "presets/unity/unity-runtime/Scripts/Tools/Editor/BatchMode/UnityOps/Handlers/SceneHandler.cs",
+        "line": 585,
+        "references": 3
+      }
+    ]
+  },
+  "module_file_counts": {
+    "_root": 8,
+    "presets": 26
+  }
+}

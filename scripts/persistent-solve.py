@@ -1164,7 +1164,27 @@ def recursive_plan(
     session = run_claude_session(prompt, budget_usd=budget.next_task_budget())
     budget.record(f"plan-d{depth}-{parent_id or 'root'}", session["cost_usd"])
 
-    tasks = parse_recursive_dag_response(session["output"], parent_id)
+    try:
+        tasks = parse_recursive_dag_response(session["output"], parent_id)
+    except PlanningError as exc:
+        print(f"  [Plan] PlanningError at depth={depth}: {exc}")
+        if depth == 0:
+            # Root level: return empty DAG, caller will handle
+            return RecursiveDAG()
+        else:
+            # Sub-level: create a single leaf task as fallback
+            fallback = RecursiveTask(
+                id=f"{parent_id}.fallback" if parent_id else "fallback",
+                description=goal[:200],
+                acceptance_criteria="Goal is achieved",
+                dependencies=[],
+                files=[],
+                complexity=2,
+                depth=depth,
+                children=[],
+                parent=parent_id,
+            )
+            return RecursiveDAG([fallback])
 
     # Set depth on all tasks
     for t in tasks:
@@ -1440,7 +1460,7 @@ Your verdict:"""
 
     print(f"  [L1] Verifying {task.id}...")
     result = run_claude_session(prompt, timeout=120, budget_usd=per_task_budget)
-    budget.add(result.get("cost_usd", 0.0))
+    budget.record(f"l1-{task.id}", result.get("cost_usd", 0.0))
 
     output = result.get("output", "").strip()
     # Parse PASS/FAIL from the output
@@ -1518,7 +1538,7 @@ Your verdict:"""
 
         print(f"  [L2] Review round {round_num} for {task.id}...")
         review_result = run_claude_session(review_prompt, timeout=180, budget_usd=per_round_budget)
-        budget.add(review_result.get("cost_usd", 0.0))
+        budget.record(f"l2-review-{task.id}-r{round_num}", review_result.get("cost_usd", 0.0))
 
         review_output = review_result.get("output", "").strip()
         if re.search(r'\bPASS\b', review_output, re.IGNORECASE):
@@ -1548,7 +1568,7 @@ Your verdict:"""
 
         print(f"  [L2] Fixing issues for {task.id} (round {round_num})...")
         fix_result = run_claude_session(fix_prompt, timeout=300, budget_usd=per_round_budget)
-        budget.add(fix_result.get("cost_usd", 0.0))
+        budget.record(f"l2-fix-{task.id}-r{round_num}", fix_result.get("cost_usd", 0.0))
 
         # Re-capture the diff after fix for the next review round
         try:
@@ -2105,6 +2125,8 @@ def _run_dag_mode(
         kanban_out = kanban_path or os.path.join(WIP_DIR, "kanban.json")
         kanban_state = KanbanState(goal)
 
+    dag = None  # Will be set in the loop; used after loop for summary
+
     for round_num in range(1, max_rounds + 1):
         elapsed = time.time() - start_time
         if elapsed >= max_time:
@@ -2184,7 +2206,9 @@ def _run_dag_mode(
     print(f"    Budget spent: {budget.summary()}")
     print(f"    Total time: {int(time.time() - start_time)}s")
 
-    if not (not failed and not pending):
+    # Check if there's unfinished work (failed/pending may not be set if DAG was empty)
+    all_done = dag.all_done() if dag and dag.tasks else True
+    if not all_done:
         print(f"\nTo continue: python scripts/persistent-solve.py \"{original_goal}\""
               f"{' --recursive' if recursive else ''}")
 
