@@ -116,6 +116,8 @@
       transition: border-color 0.2s, background 0.2s;
     }
 
+    .drop-zone { cursor: pointer; }
+
     .drop-zone.dragover {
       border-color: var(--status-running);
       background: rgba(33, 150, 243, 0.05);
@@ -326,7 +328,8 @@
   <div class="error-banner" id="error-banner"></div>
 
   <div class="drop-zone" id="drop-zone">
-    Drop a <strong>kanban.json</strong> file here, or it will auto-load from <code>.claude-flow/kanban.json</code>
+    Drop a <strong>kanban.json</strong> file here or <strong>click to browse</strong>, or it will auto-load from <code>.claude-flow/kanban.json</code>
+    <input type="file" id="file-input" accept=".json,application/json" style="display:none">
   </div>
 
   <div class="tree-controls" id="tree-controls">
@@ -587,6 +590,24 @@
         document.getElementById('auto-refresh').checked = false;
         loadKanbanFromFile(file);
       }
+    });
+
+    // ── Click to browse ──
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('click', function () {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function () {
+      const file = fileInput.files[0];
+      if (file) {
+        stopAutoRefresh();
+        document.getElementById('auto-refresh').checked = false;
+        loadKanbanFromFile(file);
+      }
+      // Reset so the same file can be re-selected
+      fileInput.value = '';
     });
 
     // ── Auto-refresh ──
