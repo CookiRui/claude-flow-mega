@@ -135,7 +135,31 @@ class TestJsonOutput:
 
 class TestMissingKanban:
     """Verify non-zero exit when kanban.json does not exist."""
-    pass
+
+    def test_missing_kanban_exits_nonzero(self, tmp_path):
+        """main() must raise SystemExit with a non-zero code when kanban.json is absent."""
+        # tmp_path exists but has no .claude-flow/kanban.json inside it
+        old_argv = sys.argv
+        sys.argv = ["task-stats", "--target", str(tmp_path)]
+        try:
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+            assert exc_info.value.code != 0
+        finally:
+            sys.argv = old_argv
+
+    def test_missing_kanban_prints_error_to_stderr(self, tmp_path, capsys):
+        """main() must print an error message to stderr when kanban.json is missing."""
+        old_argv = sys.argv
+        sys.argv = ["task-stats", "--target", str(tmp_path)]
+        try:
+            with pytest.raises(SystemExit):
+                main()
+        finally:
+            sys.argv = old_argv
+
+        err = capsys.readouterr().err
+        assert "kanban.json" in err.lower() or "not found" in err.lower()
 
 
 class TestEmptyTree:
