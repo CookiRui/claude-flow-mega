@@ -292,6 +292,36 @@
       background: var(--bg-card-hover);
     }
 
+    .filter-input {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.8rem;
+      flex: 1;
+      min-width: 150px;
+      max-width: 300px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .filter-input:focus {
+      border-color: var(--status-running);
+    }
+
+    .filter-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .tree-node.filter-hidden {
+      display: none;
+    }
+
+    .tree-node.filter-match > .node-header {
+      box-shadow: inset 3px 0 0 var(--status-running);
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .summary-bar { flex-direction: column; gap: 0.5rem; }
@@ -333,6 +363,7 @@
   </div>
 
   <div class="tree-controls" id="tree-controls">
+    <input type="text" class="filter-input" id="filter-input" placeholder="Filter by id or description...">
     <button id="expand-all">Expand All</button>
     <button id="collapse-all">Collapse All</button>
   </div>

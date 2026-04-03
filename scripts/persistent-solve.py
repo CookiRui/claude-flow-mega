@@ -2068,6 +2068,7 @@ def persistent_solve(
     kanban: bool = False,
     kanban_path: str = None,
     verify_level: str = "auto",
+    dry_run: bool = False,
 ):
     """Main persistent loop logic.
 
@@ -2378,6 +2379,10 @@ def main():
         help="Custom path for kanban JSON output (default: .claude-flow/kanban.json)"
     )
     parser.add_argument(
+        "--dry-run", action="store_true",
+        help="Only run recursive planning and print the kanban tree, without executing any tasks"
+    )
+    parser.add_argument(
         "--verify-level", choices=["auto", "l1", "l2", "l3"], default="auto",
         help="Verification level: 'auto' (based on complexity), 'l1', 'l2', 'l3' (default: auto)"
     )
@@ -2395,6 +2400,7 @@ def main():
         kanban=args.kanban,
         kanban_path=args.kanban_path,
         verify_level=args.verify_level,
+        dry_run=args.dry_run,
     )
 
 
