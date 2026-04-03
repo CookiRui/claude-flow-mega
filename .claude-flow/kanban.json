@@ -1,76 +1,141 @@
 {
-  "goal": "Complete the kanban web viewer at scripts/kanban-viewer.html. The file already has HTML scaffold and JSON loader. Read it first, then add missing features: 1) Recursive tree renderer for DAG nodes showing id/description/status/cost/commit 2) Status colors: done=green running=blue pending=gray failed=red 3) Summary bar at top 4) Auto-refresh every 3s 5) Drag-and-drop kanban.json 6) Dark theme 7) Collapsible subtrees.",
-  "start_time": "2026-04-03T14:49:45.484813",
-  "updated_at": "2026-04-03T14:55:27.867212",
+  "goal": "Add a --dry-run flag to scripts/persistent-solve.py that only runs recursive planning and prints the kanban tree, without executing any tasks. This tests the recursive decomposition and kanban output.",
+  "start_time": "2026-04-03T14:54:33.119880",
+  "updated_at": "2026-04-03T15:01:52.110277",
   "summary": {
-    "total": 7,
+    "total": 14,
     "done": 0,
     "failed": 0,
     "running": 0,
-    "pending": 7,
-    "total_cost_usd": 1.3445
+    "pending": 14,
+    "total_cost_usd": 0.9544
   },
   "tree": [
     {
       "id": "task-1",
-      "description": "Verify existing recursive tree renderer correctly handles arbitrary DAG depth and displays id/description/status/cost/commit fields",
+      "description": "Add --dry-run argument to the argparse CLI in main() and pass it through to persistent_solve()",
       "status": "pending",
-      "complexity": 1,
-      "cost_usd": 0.22515875,
-      "commit_hash": "0584ba9",
-      "children": []
-    },
-    {
-      "id": "task-2",
-      "description": "Verify status color mapping (done=green, running=blue, pending=gray, failed=red) is correct in CSS and applied via status-badge classes",
-      "status": "pending",
-      "complexity": 1,
-      "cost_usd": 0.15546625,
+      "complexity": 2,
+      "cost_usd": 0.54057075,
       "commit_hash": null,
       "children": []
     },
     {
+      "id": "task-2",
+      "description": "Implement dry-run logic in _run_dag_mode: after recursive_plan/plan_dag, build KanbanState, print the tree, write kanban JSON, then return early without executing tasks",
+      "status": "pending",
+      "complexity": 3,
+      "cost_usd": 0.0,
+      "commit_hash": null,
+      "children": [
+        {
+          "id": "task-2.task-1",
+          "description": "Add --dry-run argparse flag to main() and propagate it through persistent_solve() to _run_dag_mode()",
+          "status": "pending",
+          "complexity": 2,
+          "cost_usd": 0.2507925,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "task-2.task-2",
+          "description": "Implement dry-run early-return logic in _run_dag_mode after Phase 1 planning: initialize KanbanState, update from DAG, print tree, save kanban JSON, then return",
+          "status": "pending",
+          "complexity": 3,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": [
+            {
+              "id": "task-2.task-2.add-dry-run-param",
+              "description": "Add dry_run: bool = False parameter to _run_dag_mode signature and wire it from the CLI argparse",
+              "status": "pending",
+              "complexity": 2,
+              "cost_usd": 0.163059,
+              "commit_hash": "e66395a",
+              "children": []
+            },
+            {
+              "id": "task-2.task-2.force-kanban-on-dry-run",
+              "description": "When dry_run=True, force KanbanState creation and kanban_out defaulting to WIP_DIR/kanban.json even if kanban=False",
+              "status": "pending",
+              "complexity": 2,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": []
+            },
+            {
+              "id": "task-2.task-2.early-return-after-plan",
+              "description": "Insert early-return block after Phase 1 planning: call update_from_dag, save, print_tree in order, then return — skipping Phase 2 execution entirely",
+              "status": "pending",
+              "complexity": 2,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": []
+            },
+            {
+              "id": "task-2.task-2.preserve-empty-dag-guard",
+              "description": "Ensure the existing 'No tasks generated' print + break still fires before the dry-run return path when dag.tasks is empty",
+              "status": "pending",
+              "complexity": 1,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": []
+            },
+            {
+              "id": "task-2.task-2.verify-dry-run",
+              "description": "Manually verify dry-run logic by reading the final code path to confirm contract constraints: call order, no execute_* calls, single loop iteration, normal return",
+              "status": "pending",
+              "complexity": 1,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "task-2.task-3",
+          "description": "Add dry-run status to the banner/header output in persistent_solve so the user sees confirmation that dry-run mode is active",
+          "status": "pending",
+          "complexity": 1,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "task-2.task-4",
+          "description": "Verify dry-run integration: ensure the for-loop breaks after one iteration, kanban JSON file is written correctly, and no execution functions are reachable",
+          "status": "pending",
+          "complexity": 2,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        }
+      ]
+    },
+    {
       "id": "task-3",
-      "description": "Verify summary bar renders total/done/running/pending/failed/cost from kanban data.summary",
+      "description": "Update the module docstring and Usage section to document the --dry-run flag",
       "status": "pending",
       "complexity": 1,
-      "cost_usd": 0.22389175,
+      "cost_usd": 0.0,
       "commit_hash": null,
       "children": []
     },
     {
       "id": "task-4",
-      "description": "Verify auto-refresh polls every 3s, toggle checkbox starts/stops it, and green dot indicator reflects state",
+      "description": "Manual verification: run the script with --dry-run --recursive and confirm it prints a kanban tree and exits without launching any claude sessions for execution",
       "status": "pending",
-      "complexity": 1,
-      "cost_usd": 0.15123999999999999,
+      "complexity": 2,
+      "cost_usd": 0.0,
       "commit_hash": null,
       "children": []
     },
     {
       "id": "task-5",
-      "description": "Verify drag-and-drop of kanban.json loads and renders the file, disabling auto-refresh on drop",
+      "description": "Commit and push the changes to origin/master",
       "status": "pending",
       "complexity": 1,
-      "cost_usd": 0.14339799999999997,
-      "commit_hash": null,
-      "children": []
-    },
-    {
-      "id": "task-6",
-      "description": "Verify dark theme CSS variables produce a cohesive dark UI with proper contrast ratios",
-      "status": "pending",
-      "complexity": 1,
-      "cost_usd": 0.2348,
-      "commit_hash": null,
-      "children": []
-    },
-    {
-      "id": "task-7",
-      "description": "Verify collapsible subtrees toggle children visibility on header click with chevron rotation animation",
-      "status": "pending",
-      "complexity": 1,
-      "cost_usd": 0.2105315,
+      "cost_usd": 0.0,
       "commit_hash": null,
       "children": []
     }
