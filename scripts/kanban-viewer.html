@@ -5,6 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kanban Viewer</title>
   <style>
+    /*
+     * ══ CSS AUDIT (task-2.apply-fixes.audit-css) ══
+     *
+     * 1. DUPLICATE RULES
+     *    - L110+L121: .drop-zone declared twice; cursor:pointer should merge into first block
+     *
+     * 2. MISSING THEME TOKENS / HARDCODED COLORS
+     *    - .drop-zone.dragover: rgba(33,150,243,0.05) hardcoded, doesn't track --status-running in light theme
+     *    - .shortcuts-help: box-shadow rgba(0,0,0,0.2) not theme-aware
+     *    - .status-done/.status-running/.status-failed: color:#fff hardcoded (minor)
+     *    - No --shadow-color token for box-shadows
+     *
+     * 3. CROSS-FEATURE CLASS CONFLICTS
+     *    - .tree-node.filter-hidden (display:none) vs .node-children.collapsed (display:none):
+     *      applyFilter() auto-expands ancestors (removes .collapsed, adds .expanded chevron)
+     *      but clearing filter does NOT restore original collapse state → progressive unwanted expansion
+     *    - Repeated filter/clear cycles expand all branches permanently
+     *
+     * 4. SPECIFICITY / DEAD RULES
+     *    - @media .node-header font-size:0.8rem is dead: child .node-id/.node-desc have explicit 0.85rem
+     *    - .progress-segment.done vs .status-done naming overlap (different elements, confusing)
+     *
+     * 5. MINOR
+     *    - body padding:0 redundant with * { padding:0 } reset
+     *    - Universal * reset strips semantic element defaults (safe for now, fragile if HTML changes)
+     */
     :root,
     [data-theme="dark"] {
       --bg-primary: #1a1a2e;
