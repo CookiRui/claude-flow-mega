@@ -1,14 +1,14 @@
 {
   "goal": "Add a --dry-run flag to scripts/persistent-solve.py: when set, only run recursive planning and print the kanban tree, then exit without executing tasks. Add the argparse arg, pass it through persistent_solve to _run_dag_mode, and return early after planning.",
   "start_time": "2026-04-03T15:06:02.335134",
-  "updated_at": "2026-04-03T15:18:01.496665",
+  "updated_at": "2026-04-03T15:18:43.796275",
   "summary": {
     "total": 10,
-    "done": 2,
+    "done": 3,
     "failed": 1,
     "running": 0,
-    "pending": 7,
-    "total_cost_usd": 1.4307
+    "pending": 6,
+    "total_cost_usd": 1.6471
   },
   "tree": [
     {
@@ -48,10 +48,10 @@
             {
               "id": "task-2.task-1.task-2",
               "description": "Add pytest fixture that builds a synthetic RecursiveDAG containing at least one RecursiveTask",
-              "status": "pending",
+              "status": "done",
               "complexity": 2,
-              "cost_usd": 0.0,
-              "commit_hash": null,
+              "cost_usd": 0.21640125,
+              "commit_hash": "d1bdef4",
               "children": []
             },
             {
