@@ -240,6 +240,30 @@
       background: var(--bg-card-hover);
     }
 
+    /* Tree controls */
+    .tree-controls {
+      display: none;
+      gap: 0.5rem;
+      padding: 0.5rem 1.5rem 0;
+    }
+
+    .tree-controls.visible { display: flex; }
+
+    .tree-controls button {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.15s;
+    }
+
+    .tree-controls button:hover {
+      background: var(--bg-card-hover);
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .summary-bar { flex-direction: column; gap: 0.5rem; }
@@ -273,6 +297,11 @@
 
   <div class="drop-zone" id="drop-zone">
     Drop a <strong>kanban.json</strong> file here, or it will auto-load from <code>.claude-flow/kanban.json</code>
+  </div>
+
+  <div class="tree-controls" id="tree-controls">
+    <button id="expand-all">Expand All</button>
+    <button id="collapse-all">Collapse All</button>
   </div>
 
   <div class="tree-container" id="tree-container"></div>
@@ -446,8 +475,31 @@
       });
     }
 
+    // ── Expand / Collapse all ──
+    function setAllExpanded(expanded) {
+      const container = document.getElementById('tree-container');
+      container.querySelectorAll('.node-children').forEach(function (el) {
+        el.classList.toggle('collapsed', !expanded);
+      });
+      container.querySelectorAll('.chevron:not(.leaf)').forEach(function (el) {
+        el.classList.toggle('expanded', expanded);
+      });
+    }
+
+    document.getElementById('expand-all').addEventListener('click', function () {
+      setAllExpanded(true);
+    });
+
+    document.getElementById('collapse-all').addEventListener('click', function () {
+      setAllExpanded(false);
+    });
+
     // ── Main render ──
     function render(data) {
+      // Hide drop zone and show tree controls once data loads
+      document.getElementById('drop-zone').style.display = 'none';
+      document.getElementById('tree-controls').classList.add('visible');
+
       // Goal
       if (data.goal) {
         document.getElementById('goal-bar').style.display = '';
