@@ -4,6 +4,7 @@
 import json
 import sys
 import os
+import time
 from unittest.mock import patch
 
 import pytest
@@ -1371,3 +1372,38 @@ class TestCLIArgs:
         assert args.kanban is True
         assert args.kanban_path == "out/kb.json"
         assert args.verify_level == "l2"
+
+
+# ============================================================
+# dry_run integration test
+# ============================================================
+
+class TestDryRunDagMode:
+
+    def test_dag_mode_dry_run_skips_execute(self):
+        """When dry_run=True, _run_dag_mode plans but never calls execute_dag."""
+        fake_tasks = [
+            RecursiveTask(
+                id="t1", description="task one",
+                acceptance_criteria="done", dependencies=[], files=["a.py"],
+            ),
+        ]
+        fake_dag = RecursiveDAG(fake_tasks)
+
+        with patch.object(ps, "clarify_goal", return_value="clarified goal") as mock_clarify, \
+             patch.object(ps, "plan_dag", return_value=fake_dag) as mock_plan, \
+             patch.object(ps, "execute_dag") as mock_execute:
+
+            budget = BudgetTracker(max_budget_usd=10.0, per_task_budget_usd=1.0)
+            ps._run_dag_mode(
+                goal="test goal",
+                max_rounds=1,
+                max_time=3600,
+                budget=budget,
+                start_time=time.time(),
+                dry_run=True,
+            )
+
+            mock_clarify.assert_called_once()
+            mock_plan.assert_called_once()
+            mock_execute.assert_not_called()
