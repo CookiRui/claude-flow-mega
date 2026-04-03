@@ -322,6 +322,40 @@
       box-shadow: inset 3px 0 0 var(--status-running);
     }
 
+    /* Keyboard shortcuts help tooltip */
+    .shortcuts-help {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .shortcuts-help .title {
+      font-weight: bold;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .shortcuts-help kbd {
+      display: inline-block;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      padding: 0 0.3rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--text-primary);
+      margin-right: 0.3rem;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .summary-bar { flex-direction: column; gap: 0.5rem; }
@@ -369,6 +403,15 @@
   </div>
 
   <div class="tree-container" id="tree-container"></div>
+
+  <div class="shortcuts-help" id="shortcuts-help">
+    <div class="title">Keyboard Shortcuts</div>
+    <div><kbd>R</kbd> Refresh</div>
+    <div><kbd>E</kbd> Expand all</div>
+    <div><kbd>C</kbd> Collapse all</div>
+    <div><kbd>F</kbd> Focus filter</div>
+    <div><kbd>T</kbd> Toggle theme</div>
+  </div>
 
   <script>
     // ── State ──
@@ -742,6 +785,37 @@
 
     document.getElementById('filter-input').addEventListener('input', function () {
       applyFilter(this.value.trim());
+    });
+
+    // ── Keyboard shortcuts ──
+    document.addEventListener('keydown', function (e) {
+      const key = e.key.toLowerCase();
+      const tag = document.activeElement.tagName;
+      const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+      // F always works — focuses the filter input
+      if (key === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        document.getElementById('filter-input').focus();
+        return;
+      }
+
+      // All other shortcuts are suppressed when an input is focused
+      if (isInput) return;
+
+      if (key === 'r' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        loadKanban();
+      } else if (key === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        setAllExpanded(true);
+      } else if (key === 'c' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        setAllExpanded(false);
+      } else if (key === 't' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        toggleTheme();
+      }
     });
 
     // ── Init ──
