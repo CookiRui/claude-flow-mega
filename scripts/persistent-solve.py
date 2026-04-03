@@ -1871,6 +1871,9 @@ def execute_recursive_dag(
     }
 
     batch_num = 0
+    stagnant_batches = 0
+    MAX_STAGNANT_BATCHES = 3
+    prev_done_count = sum(1 for t in dag.tasks.values() if t.status == "done")
 
     while True:
         ready = dag.get_ready_leaves()
@@ -1984,9 +1987,20 @@ def execute_recursive_dag(
                 kanban_state.save(kanban_path)
             kanban_state.print_tree()
 
+        # --- Stagnation detection ---
+        current_done_count = sum(1 for t in dag.tasks.values() if t.status == "done")
+        if current_done_count > prev_done_count:
+            stagnant_batches = 0
+            prev_done_count = current_done_count
+        else:
+            stagnant_batches += 1
+            if stagnant_batches >= MAX_STAGNANT_BATCHES:
+                print(f"\n[STAGNATION] No new tasks completed in {MAX_STAGNANT_BATCHES} batches. Stopping.")
+                break
+
         # --- Status report ---
-        print(f"\n--- DAG Status ---\n{dag.summary()}\n"
-              f"Budget: {budget.summary()}\n------------------")
+        print(f"\n--- DAG Status (done:{current_done_count}/{len(dag.tasks)} stagnant:{stagnant_batches}) ---")
+        print(f"{dag.summary()}\nBudget: {budget.summary()}\n------------------")
 
     # Final check
     if dag.all_done():
@@ -2024,14 +2038,17 @@ def _handle_task_failure(
         task.status = "pending"
         print(f"  [Retry] {task_id}: resetting to pending for retry")
     else:
-        # Max retries exhausted — mark failed and try replan
         dag.mark_failed(task_id, error_context)
-        print(f"  [Replan] {task_id}: max retries exhausted, attempting replan...")
 
-        replan_ok = replan_subtree(task, dag, error_context, budget)
-        if not replan_ok:
-            # Replan also failed — task stays failed, continue other branches
-            print(f"  [FAILED] {task_id}: replan failed, skipping task")
+        # Only replan C>=3 tasks. C:1-2 are atomic — replanning causes infinite expansion.
+        if task.complexity >= 3:
+            print(f"  [Replan] {task_id}: max retries exhausted, attempting replan (C:{task.complexity})...")
+            replan_ok = replan_subtree(task, dag, error_context, budget)
+            if not replan_ok:
+                print(f"  [FAILED] {task_id}: replan failed, skipping task")
+                checkpoint_commit(task, success=False)
+        else:
+            print(f"  [FAILED] {task_id}: max retries exhausted (C:{task.complexity}, no replan)")
             checkpoint_commit(task, success=False)
 
 
