@@ -67,7 +67,40 @@ def write_kanban(base_dir, kanban_data):
 
 class TestDefaultOutput:
     """Verify human-readable one-line output."""
-    pass
+
+    def test_text_output_contains_all_fields(self, tmp_path, capsys):
+        """main() with a valid kanban prints a line with total, done, failed, pending, cost."""
+        kanban = make_kanban(done=3, failed=1, running=1, pending=2, total_cost_usd=1.25)
+        write_kanban(tmp_path, kanban)
+
+        # Patch sys.argv so argparse sees --target
+        old_argv = sys.argv
+        sys.argv = ["task-stats", "--target", str(tmp_path)]
+        try:
+            main()
+        finally:
+            sys.argv = old_argv
+
+        out = capsys.readouterr().out
+        # All summary fields must appear in the text output
+        assert "7" in out          # total = 3+1+1+2
+        assert "3" in out          # done
+        assert "1" in out          # failed
+        assert "2" in out          # pending
+        assert "1.25" in out       # cost
+
+    def test_exit_code_is_zero(self, tmp_path):
+        """main() exits normally (no SystemExit) for a valid kanban."""
+        kanban = make_kanban(done=1, pending=1, total_cost_usd=0.50)
+        write_kanban(tmp_path, kanban)
+
+        old_argv = sys.argv
+        sys.argv = ["task-stats", "--target", str(tmp_path)]
+        try:
+            # Should NOT raise SystemExit
+            main()
+        finally:
+            sys.argv = old_argv
 
 
 class TestJsonOutput:
