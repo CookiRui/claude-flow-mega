@@ -597,6 +597,10 @@
       }
       renderSummary(data.summary);
       renderTree(data.tree);
+
+      // Re-apply active filter after re-render
+      var filterVal = document.getElementById('filter-input').value.trim();
+      if (filterVal) applyFilter(filterVal);
     }
 
     // ── Drag and drop ──
@@ -682,6 +686,63 @@
     }
 
     document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+    // ── Filter ──
+    function applyFilter(query) {
+      const container = document.getElementById('tree-container');
+      const allNodes = container.querySelectorAll('.tree-node');
+
+      if (!query) {
+        // Clear all filter states
+        allNodes.forEach(function (el) {
+          el.classList.remove('filter-hidden', 'filter-match');
+        });
+        return;
+      }
+
+      const q = query.toLowerCase();
+
+      // Recursively check if a .tree-node DOM element matches or has a descendant that matches
+      function markNode(nodeEl) {
+        const header = nodeEl.querySelector(':scope > .node-header');
+        const idText = header.querySelector('.node-id').textContent.toLowerCase();
+        const descText = header.querySelector('.node-desc').textContent.toLowerCase();
+        const selfMatch = idText.includes(q) || descText.includes(q);
+
+        // Check children
+        const childrenContainer = nodeEl.querySelector(':scope > .node-children');
+        let childMatch = false;
+        if (childrenContainer) {
+          const childNodes = childrenContainer.querySelectorAll(':scope > .tree-node');
+          childNodes.forEach(function (child) {
+            if (markNode(child)) childMatch = true;
+          });
+        }
+
+        const visible = selfMatch || childMatch;
+        nodeEl.classList.toggle('filter-hidden', !visible);
+        nodeEl.classList.toggle('filter-match', selfMatch);
+
+        // If a child matches, ensure this ancestor's children are expanded
+        if (childMatch && childrenContainer) {
+          childrenContainer.classList.remove('collapsed');
+          const chevron = header.querySelector('.chevron');
+          if (chevron) chevron.classList.add('expanded');
+        }
+
+        return visible;
+      }
+
+      // Process only top-level tree nodes
+      const topNodes = container.querySelectorAll(':scope > .tree-node');
+      topNodes.forEach(function (nodeEl) {
+        markNode(nodeEl);
+      });
+    }
+
+    document.getElementById('filter-input').addEventListener('input', function () {
+      applyFilter(this.value.trim());
+    });
 
     // ── Init ──
     // Restore theme preference (default: dark)
