@@ -1,14 +1,14 @@
 {
   "goal": "Create a Python script scripts/task-stats.py that reads .claude-flow/kanban.json and prints a one-line summary: total tasks, done, failed, pending, total cost. Use argparse with --json flag for JSON output. Include tests in tests/test_task_stats.py.",
   "start_time": "2026-04-03T15:29:07.284286",
-  "updated_at": "2026-04-03T15:34:06.622271",
+  "updated_at": "2026-04-03T15:35:10.638720",
   "summary": {
     "total": 10,
-    "done": 2,
+    "done": 3,
     "failed": 0,
     "running": 0,
-    "pending": 8,
-    "total_cost_usd": 0.4837
+    "pending": 7,
+    "total_cost_usd": 0.7427
   },
   "tree": [
     {
@@ -40,10 +40,10 @@
         {
           "id": "write-tests.scaffold-test",
           "description": "Create tests/test_task_stats.py with imports, importlib loader, fixture data factory, and class structure",
-          "status": "pending",
+          "status": "done",
           "complexity": 2,
-          "cost_usd": 0.0,
-          "commit_hash": null,
+          "cost_usd": 0.25900025000000004,
+          "commit_hash": "87f8008",
           "children": []
         },
         {
