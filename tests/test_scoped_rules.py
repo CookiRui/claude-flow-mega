@@ -15,75 +15,93 @@ scope_loader = importlib.import_module("scope-loader")
 
 
 class TestDetectModules(unittest.TestCase):
-    """Test module detection (directories with .claude/ subdirectory)."""
+    """Test module detection."""
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
-        # Root has .claude/
-        os.makedirs(os.path.join(self.tmpdir, ".claude", "rules"))
-        # Module A has .claude/
-        os.makedirs(os.path.join(self.tmpdir, "module-a", ".claude", "rules"))
-        # Module B has .claude/
-        os.makedirs(os.path.join(self.tmpdir, "module-b", ".claude", "rules"))
-        # Module C does NOT have .claude/ (not a scoped module)
-        os.makedirs(os.path.join(self.tmpdir, "module-c", "src"))
+        # Module A has source files
+        mod_a = os.path.join(self.tmpdir, "module-a", "src")
+        os.makedirs(mod_a)
+        Path(os.path.join(mod_a, "app.py")).write_text("# code", encoding="utf-8")
+        # Module B has source files
+        mod_b = os.path.join(self.tmpdir, "module-b", "src")
+        os.makedirs(mod_b)
+        Path(os.path.join(mod_b, "main.py")).write_text("# code", encoding="utf-8")
+        # Module C has no source files (not a module)
+        os.makedirs(os.path.join(self.tmpdir, "module-c"))
+        Path(os.path.join(self.tmpdir, "module-c", "readme.txt")).write_text("no code", encoding="utf-8")
 
-    def test_detect_modules_finds_scoped_dirs(self):
-        modules = scope_loader.detect_modules(self.tmpdir)
+    def _detect(self):
+        config = scope_loader.load_config(self.tmpdir)
+        return scope_loader.detect_modules(self.tmpdir, config)
+
+    def test_detect_modules_finds_source_dirs(self):
+        modules = self._detect()
         names = [m["name"] for m in modules]
         self.assertIn("module-a", names)
         self.assertIn("module-b", names)
-        self.assertNotIn("module-c", names)
 
     def test_detect_modules_includes_root(self):
-        modules = scope_loader.detect_modules(self.tmpdir)
-        paths = [m["path"] for m in modules]
-        self.assertIn(self.tmpdir, paths)
+        modules = self._detect()
+        names = [m["name"] for m in modules]
+        self.assertIn("_root", names)
 
-    def test_detect_modules_returns_relative_paths(self):
-        modules = scope_loader.detect_modules(self.tmpdir)
-        for m in modules:
-            if m["name"] != ".":
-                self.assertFalse(os.path.isabs(m["rel_path"]))
+    def test_detect_modules_skips_no_source_dirs(self):
+        modules = self._detect()
+        names = [m["name"] for m in modules]
+        self.assertNotIn("module-c", names)
 
 
-class TestAffectedModules(unittest.TestCase):
-    """Test determining which modules are affected by a set of changed files."""
+class TestClassifyFileToModule(unittest.TestCase):
+    """Test file-to-module classification."""
+
+    def setUp(self):
+        self.modules = [
+            {"name": "module-a", "paths": ["module-a/"], "description": ""},
+            {"name": "module-b", "paths": ["module-b/"], "description": ""},
+            {"name": "_root", "paths": [""], "description": "Root"},
+        ]
+
+    def test_file_in_module_a(self):
+        result = scope_loader.classify_file_to_module("module-a/src/app.py", self.modules)
+        self.assertEqual(result, "module-a")
+
+    def test_file_in_root(self):
+        result = scope_loader.classify_file_to_module("setup.py", self.modules)
+        self.assertEqual(result, "_root")
+
+    def test_file_in_unknown_dir(self):
+        result = scope_loader.classify_file_to_module("other/thing.py", self.modules)
+        self.assertEqual(result, "_root")
+
+
+class TestGetAffectedModules(unittest.TestCase):
+    """Test determining which modules are affected by changed files."""
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
-        os.makedirs(os.path.join(self.tmpdir, ".claude", "rules"))
-        os.makedirs(os.path.join(self.tmpdir, "module-a", ".claude", "rules"))
-        os.makedirs(os.path.join(self.tmpdir, "module-b", ".claude", "rules"))
-        os.makedirs(os.path.join(self.tmpdir, "module-c", "src"))
+        # Create module with source
+        mod_a = os.path.join(self.tmpdir, "module-a", "src")
+        os.makedirs(mod_a)
+        Path(os.path.join(mod_a, "app.py")).write_text("# code", encoding="utf-8")
 
     def test_files_in_module_a_affect_module_a(self):
-        changed = ["module-a/src/app.py", "module-a/tests/test_app.py"]
-        affected = scope_loader.affected_modules(self.tmpdir, changed)
-        names = [m["name"] for m in affected]
-        self.assertIn("module-a", names)
-        self.assertNotIn("module-b", names)
+        changed = ["module-a/src/app.py"]
+        affected = scope_loader.get_affected_modules(changed, self.tmpdir)
+        self.assertIn("module-a", affected)
 
     def test_files_in_root_affect_root(self):
-        changed = ["setup.py", "README.md"]
-        affected = scope_loader.affected_modules(self.tmpdir, changed)
-        names = [m["name"] for m in affected]
-        self.assertIn(".", names)
-
-    def test_files_in_non_module_dir_affect_root(self):
-        changed = ["module-c/src/something.py"]
-        affected = scope_loader.affected_modules(self.tmpdir, changed)
-        names = [m["name"] for m in affected]
-        # module-c has no .claude/, so changes there fall under root
-        self.assertIn(".", names)
+        changed = ["setup.py"]
+        affected = scope_loader.get_affected_modules(changed, self.tmpdir)
+        self.assertIn("_root", affected)
 
     def test_empty_changed_files_returns_empty(self):
-        affected = scope_loader.affected_modules(self.tmpdir, [])
+        affected = scope_loader.get_affected_modules([], self.tmpdir)
         self.assertEqual(len(affected), 0)
 
 
-class TestLoadModuleRules(unittest.TestCase):
-    """Test loading rules from a module's .claude/ directory."""
+class TestFindRules(unittest.TestCase):
+    """Test rule and constitution discovery."""
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
@@ -112,64 +130,30 @@ class TestLoadModuleRules(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def test_load_root_rules(self):
-        rules = scope_loader.load_module_rules(self.tmpdir, ".")
-        self.assertTrue(len(rules) > 0)
-        rule_files = [r["file"] for r in rules]
-        self.assertTrue(any("security.md" in f for f in rule_files))
+    def test_find_root_constitutions(self):
+        result = scope_loader.find_root_constitutions(self.tmpdir)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["scope"], "root")
 
-    def test_load_module_rules(self):
-        rules = scope_loader.load_module_rules(self.tmpdir, "module-a")
-        rule_files = [r["file"] for r in rules]
-        self.assertTrue(any("perf.md" in f for f in rule_files))
+    def test_find_root_rules(self):
+        result = scope_loader.find_root_rules(self.tmpdir)
+        self.assertTrue(len(result) > 0)
+        paths = [r["path"] for r in result]
+        self.assertTrue(any("security.md" in p for p in paths))
 
-    def test_load_module_constitution(self):
-        constitution = scope_loader.load_module_constitution(self.tmpdir, "module-a")
-        self.assertIsNotNone(constitution)
-        self.assertIn("Module-specific constraint", constitution["content"])
+    def test_find_module_rules(self):
+        result = scope_loader.find_module_rules(["module-a"], self.tmpdir)
+        paths = [r["path"] for r in result]
+        self.assertTrue(any("perf.md" in p for p in paths))
 
-    def test_load_root_constitution(self):
-        constitution = scope_loader.load_module_constitution(self.tmpdir, ".")
-        self.assertIsNotNone(constitution)
-        self.assertIn("Global constraint", constitution["content"])
-
-
-class TestRulePriority(unittest.TestCase):
-    """Test rule priority resolution."""
-
-    def test_module_rules_override_root_on_conflict(self):
-        root_rules = [
-            {"file": "security.md", "scope": "root", "content": "# Security\n\n## Rule 1: Use SHA256"},
-        ]
-        module_rules = [
-            {"file": "security.md", "scope": "module-a", "content": "# Security\n\n## Rule 1: Use SHA512"},
-        ]
-        merged = scope_loader.merge_rules(root_rules, module_rules)
-        # Module-level security.md should take priority
-        security = [r for r in merged if "security.md" in r["file"]]
-        self.assertEqual(len(security), 1)
-        self.assertIn("SHA512", security[0]["content"])
-
-    def test_non_conflicting_rules_are_both_included(self):
-        root_rules = [
-            {"file": "security.md", "scope": "root", "content": "# Security"},
-        ]
-        module_rules = [
-            {"file": "perf.md", "scope": "module-a", "content": "# Performance"},
-        ]
-        merged = scope_loader.merge_rules(root_rules, module_rules)
-        self.assertEqual(len(merged), 2)
-
-    def test_empty_module_rules_returns_root(self):
-        root_rules = [
-            {"file": "security.md", "scope": "root", "content": "# Security"},
-        ]
-        merged = scope_loader.merge_rules(root_rules, [])
-        self.assertEqual(len(merged), 1)
+    def test_find_module_constitutions(self):
+        result = scope_loader.find_module_constitutions(["module-a"], self.tmpdir)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["scope"], "module-a")
 
 
-class TestScopedRulesForDiff(unittest.TestCase):
-    """Integration test: given changed files, get the scoped rules."""
+class TestResolveAll(unittest.TestCase):
+    """Test full resolution: root + module constitutions and rules."""
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
@@ -194,28 +178,22 @@ class TestScopedRulesForDiff(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def test_get_scope_loader_for_module_change(self):
-        changed = ["module-a/src/app.py"]
-        result = scope_loader.get_scope_loader(self.tmpdir, changed)
+    def test_resolve_for_module_change(self):
+        result = scope_loader.resolve_all(self.tmpdir, ["module-a"])
         self.assertIn("constitutions", result)
         self.assertIn("rules", result)
-        # Should have root constitution + module constitution
         const_scopes = [c["scope"] for c in result["constitutions"]]
         self.assertIn("root", const_scopes)
         self.assertIn("module-a", const_scopes)
 
-    def test_get_scope_loader_for_root_change(self):
-        changed = ["setup.py"]
-        result = scope_loader.get_scope_loader(self.tmpdir, changed)
+    def test_resolve_for_root_only(self):
+        result = scope_loader.resolve_all(self.tmpdir, ["_root"])
         const_scopes = [c["scope"] for c in result["constitutions"]]
         self.assertIn("root", const_scopes)
-        # Should NOT include module-a constitution
         self.assertNotIn("module-a", const_scopes)
 
     def test_output_format_is_json_serializable(self):
-        changed = ["module-a/src/app.py"]
-        result = scope_loader.get_scope_loader(self.tmpdir, changed)
-        # Should be JSON-serializable
+        result = scope_loader.resolve_all(self.tmpdir, ["module-a"])
         serialized = json.dumps(result)
         self.assertIsInstance(serialized, str)
 
