@@ -2094,6 +2094,8 @@ def persistent_solve(
     kanban_path: str = None,
     verify_level: str = "auto",
     dry_run: bool = False,
+    kanban_serve: bool = False,
+    kanban_port: int = 8420,
 ):
     """Main persistent loop logic.
 
@@ -2107,6 +2109,11 @@ def persistent_solve(
     ensure_wip_dir()
     start_time = time.time()
     budget = BudgetTracker(max_budget_usd, per_task_budget_usd)
+
+    # Start kanban HTTP server if requested (implies --kanban)
+    if kanban_serve:
+        kanban = True
+        _start_kanban_server(kanban_port)
 
     mode_label = f"{mode}" + (" (recursive)" if recursive else "")
     print(f"{'='*60}")
@@ -2376,6 +2383,61 @@ def _run_legacy_mode(
 
 
 # ============================================================
+# Kanban HTTP Server
+# ============================================================
+
+def _start_kanban_server(port: int = 8420) -> threading.Thread:
+    """Start a lightweight HTTP server in a background thread for the kanban viewer.
+
+    Serves the project root so that kanban-viewer.html can fetch
+    .claude-flow/kanban.json via a relative URL.  The server runs on
+    localhost and is intended for local development only.
+
+    Returns the daemon thread (auto-stops when main process exits).
+    """
+    import http.server
+
+    # Suppress request logs to avoid cluttering the main output
+    class QuietHandler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=".", **kwargs)
+
+        def log_message(self, format, *args):
+            pass
+
+    try:
+        server = http.server.HTTPServer(("127.0.0.1", port), QuietHandler)
+    except OSError:
+        # Port already in use — try a few alternatives
+        for alt_port in range(port + 1, port + 10):
+            try:
+                server = http.server.HTTPServer(("127.0.0.1", alt_port), QuietHandler)
+                port = alt_port
+                break
+            except OSError:
+                continue
+        else:
+            print(f"  [Kanban] Could not start HTTP server on ports {port}-{port+9}")
+            return None
+
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    viewer_url = f"http://localhost:{port}/scripts/kanban-viewer.html"
+    print(f"  [Kanban] Viewer: {viewer_url}")
+    print(f"  [Kanban] Auto-refreshes every 3s — open in browser")
+
+    # Try to open browser automatically
+    import webbrowser
+    try:
+        webbrowser.open(viewer_url)
+    except Exception:
+        pass  # Non-critical — user can open manually
+
+    return thread
+
+
+# ============================================================
 # CLI
 # ============================================================
 
@@ -2425,6 +2487,14 @@ def main():
         help="Only run recursive planning and print the kanban tree, without executing any tasks"
     )
     parser.add_argument(
+        "--kanban-serve", action="store_true",
+        help="Start a local HTTP server and open kanban-viewer.html in browser (auto-refresh)"
+    )
+    parser.add_argument(
+        "--kanban-port", type=int, default=8420,
+        help="Port for the kanban HTTP server (default: 8420)"
+    )
+    parser.add_argument(
         "--verify-level", choices=["auto", "l1", "l2", "l3"], default="auto",
         help="Verification level: 'auto' (based on complexity), 'l1', 'l2', 'l3' (default: auto)"
     )
@@ -2439,10 +2509,12 @@ def main():
         mode=args.mode,
         skip_clarify=args.no_clarify,
         recursive=args.recursive,
-        kanban=args.kanban,
+        kanban=args.kanban or args.kanban_serve,
         kanban_path=args.kanban_path,
         verify_level=args.verify_level,
         dry_run=args.dry_run,
+        kanban_serve=args.kanban_serve,
+        kanban_port=args.kanban_port,
     )
 
 
