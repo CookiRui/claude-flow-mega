@@ -4,7 +4,7 @@ Task Stats — Print a one-line summary of task status from kanban.json.
 
 Usage:
     python scripts/task-stats.py --target .
-    python scripts/task-stats.py --target /path/to/project
+    python scripts/task-stats.py --file .claude-flow/kanban.json
     python scripts/task-stats.py --target . --json
 """
 
@@ -58,8 +58,11 @@ def main():
     )
     parser.add_argument(
         "--target",
-        required=True,
-        help="Path to project directory containing .claude-flow/kanban.json (required)",
+        help="Path to project directory containing .claude-flow/kanban.json",
+    )
+    parser.add_argument(
+        "--file",
+        help="Path to kanban.json file directly (overrides --target)",
     )
     parser.add_argument(
         "--json",
@@ -69,16 +72,35 @@ def main():
     )
     args = parser.parse_args()
 
-    if not os.path.isdir(args.target):
+    if args.file:
+        if not os.path.isfile(args.file):
+            print(
+                f"Error: kanban file not found at {args.file}\n"
+                f"Usage: python scripts/task-stats.py --file /path/to/kanban.json\n"
+                f"  --file: path to kanban.json file (required if --target not given)",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        with open(args.file, "r", encoding="utf-8") as f:
+            kanban = json.load(f)
+    elif args.target:
+        if not os.path.isdir(args.target):
+            print(
+                f"Error: {args.target} is not a valid directory\n"
+                f"Usage: python scripts/task-stats.py --target /path/to/project\n"
+                f"  --target: path to project directory (required if --file not given)",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        kanban = load_kanban(args.target)
+    else:
         print(
-            f"Error: {args.target} is not a valid directory\n"
-            f"Usage: python scripts/task-stats.py --target /path/to/project\n"
-            f"  --target: path to project directory (required)",
+            "Error: either --target or --file is required\n"
+            "Usage: python scripts/task-stats.py --target /path/to/project\n"
+            "       python scripts/task-stats.py --file /path/to/kanban.json",
             file=sys.stderr,
         )
         sys.exit(1)
-
-    kanban = load_kanban(args.target)
     stats = extract_stats(kanban)
 
     if args.json_output:
