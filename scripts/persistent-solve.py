@@ -1914,7 +1914,9 @@ def _execute_leaf_parallel(tasks: list, goal: str, budget: BudgetTracker, dag: R
 
     # --- Batch C:1-2 tasks (single claude -p call) ---
     if len(batchable_indices) >= 2:
-        batch_tasks = [tasks[i] for i in batchable_indices]
+        batch_tasks = [tasks[i] for i in batchable_indices[:MAX_BATCH_SIZE]]
+        overflow = batchable_indices[MAX_BATCH_SIZE:]
+        individual_indices.extend(overflow)  # overflow runs individually
         batch_result = _execute_batch(batch_tasks, goal, budget, dag)
         for idx in batchable_indices:
             results[idx] = batch_result
@@ -2042,6 +2044,9 @@ def execute_recursive_dag(
 
             # Batch C:1-2 sequential tasks in one call
             if len(seq_batch) >= 2 and budget.can_afford():
+                seq_batch_run = seq_batch[:MAX_BATCH_SIZE]
+                seq_individual = seq_batch[MAX_BATCH_SIZE:] + seq_individual
+                seq_batch = seq_batch_run
                 for t in seq_batch:
                     t.status = "running"
                 batch_result = _execute_batch(seq_batch, goal, budget, dag)
