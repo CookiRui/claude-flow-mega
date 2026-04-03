@@ -2237,6 +2237,10 @@ def persistent_solve(
     start_time = time.time()
     budget = BudgetTracker(max_budget_usd, per_task_budget_usd)
 
+    # --dry-run implies --kanban so the tree is always printed and saved
+    if dry_run:
+        kanban = True
+
     # Start kanban HTTP server if requested (implies --kanban)
     if kanban_serve:
         kanban = True
