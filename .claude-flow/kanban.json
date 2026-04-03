@@ -1,136 +1,108 @@
 {
-  "goal": "Demo: Build a large-scale game combat system",
-  "start_time": "2026-04-03T10:00:00",
-  "updated_at": "2026-04-03T10:35:00",
+  "goal": "Add a --dry-run flag to scripts/persistent-solve.py: when set, only run recursive planning and print the kanban tree, then exit without executing tasks. Add the argparse arg, pass it through persistent_solve to _run_dag_mode, and return early after planning.",
+  "start_time": "2026-04-03T15:06:02.335134",
+  "updated_at": "2026-04-03T15:17:12.383098",
   "summary": {
-    "total": 12,
-    "done": 7,
-    "failed": 1,
-    "running": 2,
-    "pending": 2,
-    "total_cost_usd": 3.45
+    "total": 10,
+    "done": 1,
+    "failed": 0,
+    "running": 0,
+    "pending": 9,
+    "total_cost_usd": 1.0355
   },
   "tree": [
     {
-      "id": "T1",
-      "description": "Combat system core",
-      "status": "running",
-      "complexity": 5,
-      "cost_usd": 2.10,
+      "id": "task-1",
+      "description": "Add dry-run early return in _run_dag_mode after planning phase: print the kanban tree and return before executing tasks",
+      "status": "done",
+      "complexity": 2,
+      "cost_usd": 0.37344724999999995,
+      "commit_hash": "2038a0c",
+      "children": []
+    },
+    {
+      "id": "task-2",
+      "description": "Add a test verifying --dry-run plans but does not execute tasks",
+      "status": "pending",
+      "complexity": 3,
+      "cost_usd": 0.0,
       "commit_hash": null,
       "children": [
         {
-          "id": "T1.1",
-          "description": "Damage calculation module",
-          "status": "done",
+          "id": "task-2.task-1",
+          "description": "Create tests/test_dry_run.py with importlib workaround, test fixtures, and a test verifying execute_dag is never called when dry_run=True in dag mode",
+          "status": "pending",
           "complexity": 3,
-          "cost_usd": 0.80,
-          "commit_hash": "abc1234",
-          "children": [
-            {
-              "id": "T1.1.1",
-              "description": "Critical hit formula",
-              "status": "done",
-              "complexity": 2,
-              "cost_usd": 0.25,
-              "commit_hash": "def5678",
-              "children": []
-            },
-            {
-              "id": "T1.1.2",
-              "description": "Elemental damage multiplier",
-              "status": "done",
-              "complexity": 2,
-              "cost_usd": 0.30,
-              "commit_hash": "ghi9012",
-              "children": []
-            }
-          ]
-        },
-        {
-          "id": "T1.2",
-          "description": "Armor system",
-          "status": "running",
-          "complexity": 3,
-          "cost_usd": 0.55,
+          "cost_usd": 0.0,
           "commit_hash": null,
           "children": [
             {
-              "id": "T1.2.1",
-              "description": "Physical damage reduction",
-              "status": "done",
-              "complexity": 1,
-              "cost_usd": 0.15,
-              "commit_hash": "jkl3456",
+              "id": "task-2.task-1.task-1",
+              "description": "Create tests/test_dry_run.py with importlib workaround and module-level import of persistent-solve symbols",
+              "status": "pending",
+              "complexity": 2,
+              "cost_usd": 0.20878724999999998,
+              "commit_hash": null,
               "children": []
             },
             {
-              "id": "T1.2.2",
-              "description": "Magic resistance calculation",
-              "status": "running",
+              "id": "task-2.task-1.task-2",
+              "description": "Add pytest fixture that builds a synthetic RecursiveDAG containing at least one RecursiveTask",
+              "status": "pending",
               "complexity": 2,
-              "cost_usd": 0.20,
+              "cost_usd": 0.0,
               "commit_hash": null,
               "children": []
+            },
+            {
+              "id": "task-2.task-1.task-3",
+              "description": "Write test_dag_mode_dry_run_skips_execute that mocks plan_dag, execute_dag, and clarify_goal, calls _run_dag_mode with dry_run=True, and asserts execute_dag was never called",
+              "status": "pending",
+              "complexity": 3,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": [
+                {
+                  "id": "task-2.task-1.task-3.task-1",
+                  "description": "Write test_dag_mode_dry_run_skips_execute that mocks plan_dag, execute_dag, and clarify_goal, calls _run_dag_mode with dry_run=True, and asserts execute_dag was never called",
+                  "status": "pending",
+                  "complexity": 2,
+                  "cost_usd": 0.45328225000000005,
+                  "commit_hash": null,
+                  "children": []
+                }
+              ]
             }
           ]
         },
         {
-          "id": "T1.3",
-          "description": "Dodge/evasion system",
-          "status": "failed",
+          "id": "task-2.task-2",
+          "description": "Add a test verifying execute_recursive_dag is never called when dry_run=True in recursive mode",
+          "status": "pending",
           "complexity": 2,
-          "cost_usd": 0.35,
-          "commit_hash": "mno7890",
-          "children": []
-        }
-      ]
-    },
-    {
-      "id": "T2",
-      "description": "UI framework",
-      "status": "done",
-      "complexity": 3,
-      "cost_usd": 0.95,
-      "commit_hash": "pqr1234",
-      "children": [
-        {
-          "id": "T2.1",
-          "description": "Health bar component",
-          "status": "done",
-          "complexity": 1,
-          "cost_usd": 0.45,
-          "commit_hash": "stu5678",
+          "cost_usd": 0.0,
+          "commit_hash": null,
           "children": []
         },
         {
-          "id": "T2.2",
-          "description": "Damage numbers popup",
-          "status": "done",
+          "id": "task-2.task-3",
+          "description": "Add a test verifying that plan output (kanban tree or plan summary) is printed to stdout when --dry-run is used",
+          "status": "pending",
           "complexity": 2,
-          "cost_usd": 0.50,
-          "commit_hash": "vwx9012",
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "task-2.task-4",
+          "description": "Run pytest on tests/test_dry_run.py to confirm tests are valid (expected RED failures since execution-skip logic is not yet implemented)",
+          "status": "pending",
+          "complexity": 1,
+          "cost_usd": 0.0,
+          "commit_hash": null,
           "children": []
         }
       ]
-    },
-    {
-      "id": "T3",
-      "description": "Save system integration",
-      "status": "pending",
-      "complexity": 3,
-      "cost_usd": 0.0,
-      "commit_hash": null,
-      "children": []
-    },
-    {
-      "id": "T4",
-      "description": "End-to-end integration tests",
-      "status": "pending",
-      "complexity": 4,
-      "cost_usd": 0.0,
-      "commit_hash": null,
-      "children": []
     }
   ]
 }
