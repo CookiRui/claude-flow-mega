@@ -1,14 +1,14 @@
 {
   "goal": "Add a --dry-run flag to scripts/persistent-solve.py: when set, only run planning (recursive or flat) and print the kanban tree, then exit without executing any tasks. Wire it through main() -> persistent_solve() -> _run_dag_mode(). After planning, build KanbanState, print tree, save JSON, return early.",
   "start_time": "2026-04-03T15:26:33.285231",
-  "updated_at": "2026-04-03T15:52:58.223656",
+  "updated_at": "2026-04-03T15:53:49.194116",
   "summary": {
     "total": 30,
     "done": 7,
-    "failed": 0,
+    "failed": 1,
     "running": 0,
-    "pending": 23,
-    "total_cost_usd": 1.995
+    "pending": 22,
+    "total_cost_usd": 2.3779
   },
   "tree": [
     {
@@ -25,8 +25,8 @@
       "description": "Ensure --dry-run always enables kanban output even without explicit --kanban flag, so the tree is always printed",
       "status": "pending",
       "complexity": 2,
-      "cost_usd": 0.0,
-      "commit_hash": null,
+      "cost_usd": 0.221845,
+      "commit_hash": "db43ac5",
       "children": []
     },
     {
@@ -91,9 +91,9 @@
                     {
                       "id": "task-3.task-2.task-2.task-2.task-1",
                       "description": "Create test file with importlib-based module loading and necessary imports",
-                      "status": "pending",
+                      "status": "failed",
                       "complexity": 2,
-                      "cost_usd": 0.15235675,
+                      "cost_usd": 0.31339125,
                       "commit_hash": null,
                       "children": []
                     },
