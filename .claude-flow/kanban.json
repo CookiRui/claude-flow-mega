@@ -1,15 +1,106 @@
 {
   "goal": "Create a Python script scripts/task-stats.py that reads .claude-flow/kanban.json and prints a one-line summary: total tasks, done, failed, pending, total cost. Use argparse with --json flag for JSON output. Include tests in tests/test_task_stats.py.",
   "start_time": "2026-04-03T15:29:07.284286",
-  "updated_at": "2026-04-03T15:29:07.284286",
+  "updated_at": "2026-04-03T15:33:42.888171",
   "summary": {
-    "total": 0,
-    "done": 0,
+    "total": 10,
+    "done": 1,
     "failed": 0,
     "running": 0,
-    "pending": 0,
-    "total_cost_usd": 0.0,
-    "phase": "planning"
+    "pending": 9,
+    "total_cost_usd": 0.3581
   },
-  "tree": []
+  "tree": [
+    {
+      "id": "implement-script",
+      "description": "Create scripts/task-stats.py that reads .claude-flow/kanban.json and prints a one-line summary with --json flag support via argparse.",
+      "status": "done",
+      "complexity": 2,
+      "cost_usd": 0.23215624999999995,
+      "commit_hash": "8d160d3",
+      "children": []
+    },
+    {
+      "id": "write-tests",
+      "description": "Create tests/test_task_stats.py with unit tests covering normal output, --json flag, missing file error, and edge cases (empty tree, mixed statuses).",
+      "status": "pending",
+      "complexity": 3,
+      "cost_usd": 0.0,
+      "commit_hash": null,
+      "children": [
+        {
+          "id": "write-tests.read-source",
+          "description": "Read scripts/task-stats.py and existing test conventions to understand the interface and patterns",
+          "status": "pending",
+          "complexity": 1,
+          "cost_usd": 0.12595699999999999,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "write-tests.scaffold-test",
+          "description": "Create tests/test_task_stats.py with imports, importlib loader, fixture data factory, and class structure",
+          "status": "pending",
+          "complexity": 2,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "write-tests.test-default-output",
+          "description": "Write test for default text output mode verifying summary lines contain total, done, failed, pending, cost",
+          "status": "pending",
+          "complexity": 2,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "write-tests.test-json-output",
+          "description": "Write test for --json flag verifying parseable JSON output with expected keys",
+          "status": "pending",
+          "complexity": 2,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "write-tests.test-missing-file",
+          "description": "Write test for missing kanban.json file asserting non-zero exit code",
+          "status": "pending",
+          "complexity": 2,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "write-tests.test-edge-cases",
+          "description": "Write tests for empty tree {} and mixed-status tree edge cases",
+          "status": "pending",
+          "complexity": 2,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        },
+        {
+          "id": "write-tests.run-tests",
+          "description": "Run pytest tests/test_task_stats.py and fix any failures until all tests pass",
+          "status": "pending",
+          "complexity": 2,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "verify-and-commit",
+      "description": "Run all tests, verify lint/style compliance, commit and push to origin/master.",
+      "status": "pending",
+      "complexity": 1,
+      "cost_usd": 0.0,
+      "commit_hash": null,
+      "children": []
+    }
+  ]
 }
