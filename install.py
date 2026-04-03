@@ -59,6 +59,7 @@ TEMPLATE_ITEMS = [
     ".claude/commands/bug-fix.md",
     ".claude/commands/deep-task.md",
     ".claude/commands/upgrade.md",
+    ".claude/commands/autosolve.md",
 ]
 
 SCRIPT_ITEMS = [
@@ -66,6 +67,8 @@ SCRIPT_ITEMS = [
     "scripts/repo-map.py",
     "scripts/scope-loader.py",
     "scripts/lint-feedback.sh",
+    "scripts/task-stats.py",
+    "scripts/kanban-viewer.html",
 ]
 
 
