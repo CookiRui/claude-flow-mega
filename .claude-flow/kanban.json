@@ -1,33 +1,294 @@
 {
-  "goal": "Create a Python script scripts/task-stats.py that reads .claude-flow/kanban.json and prints a one-line summary: total tasks, done, failed, pending, total cost. Use argparse with --json flag for JSON output. Include tests in tests/test_task_stats.py.",
-  "start_time": "2026-04-03T15:47:05.336178",
-  "updated_at": "2026-04-03T15:52:41.883959",
+  "goal": "Add a --dry-run flag to scripts/persistent-solve.py: when set, only run planning (recursive or flat) and print the kanban tree, then exit without executing any tasks. Wire it through main() -> persistent_solve() -> _run_dag_mode(). After planning, build KanbanState, print tree, save JSON, return early.",
+  "start_time": "2026-04-03T15:26:33.285231",
+  "updated_at": "2026-04-03T15:52:58.223656",
   "summary": {
-    "total": 2,
-    "done": 1,
-    "failed": 1,
+    "total": 30,
+    "done": 7,
+    "failed": 0,
     "running": 0,
-    "pending": 0,
-    "total_cost_usd": 0.4356
+    "pending": 23,
+    "total_cost_usd": 1.995
   },
   "tree": [
     {
-      "id": "verify-state",
-      "description": "Verify scripts/task-stats.py and tests/test_task_stats.py are already committed and all 12 tests pass.",
+      "id": "task-1",
+      "description": "Verify that the --dry-run flag is fully wired and functional by running it end-to-end with both flat and recursive modes",
       "status": "done",
-      "complexity": 1,
-      "cost_usd": 0.19075075,
-      "commit_hash": "964346b",
+      "complexity": 2,
+      "cost_usd": 0.2763715,
+      "commit_hash": "762dafa",
       "children": []
     },
     {
-      "id": "push-origin",
-      "description": "Push the existing commits to origin/master.",
-      "status": "failed",
-      "complexity": 1,
-      "cost_usd": 0.24483974999999997,
+      "id": "task-2",
+      "description": "Ensure --dry-run always enables kanban output even without explicit --kanban flag, so the tree is always printed",
+      "status": "pending",
+      "complexity": 2,
+      "cost_usd": 0.0,
       "commit_hash": null,
       "children": []
+    },
+    {
+      "id": "task-3",
+      "description": "Add a unit test verifying dry-run mode plans but does not execute tasks",
+      "status": "pending",
+      "complexity": 3,
+      "cost_usd": 0.0,
+      "commit_hash": null,
+      "children": [
+        {
+          "id": "task-3.task-1",
+          "description": "Read persistent-solve.py to understand _run_dag_mode signature, dry_run branching logic, and how plan_dag/execute_dag/recursive_plan/execute_recursive_dag/KanbanState are called",
+          "status": "done",
+          "complexity": 2,
+          "cost_usd": 0.30449125,
+          "commit_hash": "e5d92cb",
+          "children": []
+        },
+        {
+          "id": "task-3.task-2",
+          "description": "Create tests/test_dry_run.py with a flat-mode dry-run test that mocks plan_dag, asserts it was called, asserts execute_dag was NOT called, and verifies kanban JSON was written to tmp_path",
+          "status": "pending",
+          "complexity": 3,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": [
+            {
+              "id": "task-3.task-2.task-1",
+              "description": "Read persistent-solve.py to understand _run_dag_mode signature, RecursiveTask/RecursiveDAG structure, BudgetTracker constructor, and KanbanState.save behavior",
+              "status": "done",
+              "complexity": 2,
+              "cost_usd": 0.204067,
+              "commit_hash": "c38f3ea",
+              "children": []
+            },
+            {
+              "id": "task-3.task-2.task-2",
+              "description": "Create tests/test_dry_run.py with importlib-based module loading, synthetic DAG construction, mocked plan_dag/execute_dag, and assertions for dry-run behavior including kanban JSON output",
+              "status": "pending",
+              "complexity": 3,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": [
+                {
+                  "id": "task-3.task-2.task-2.task-1",
+                  "description": "Inspect persistent-solve.py to confirm exact signatures, dataclass fields, and patchable function paths needed for test mocking",
+                  "status": "done",
+                  "complexity": 2,
+                  "cost_usd": 0.24803424999999998,
+                  "commit_hash": "c5aaa64",
+                  "children": []
+                },
+                {
+                  "id": "task-3.task-2.task-2.task-2",
+                  "description": "Write tests/test_dry_run.py with importlib-based module loading, synthetic DAG fixture, mocked plan_dag/execute_dag/clarify_goal, and assertions for dry-run behavior including kanban JSON output",
+                  "status": "pending",
+                  "complexity": 3,
+                  "cost_usd": 0.0,
+                  "commit_hash": null,
+                  "children": [
+                    {
+                      "id": "task-3.task-2.task-2.task-2.task-1",
+                      "description": "Create test file with importlib-based module loading and necessary imports",
+                      "status": "pending",
+                      "complexity": 2,
+                      "cost_usd": 0.15235675,
+                      "commit_hash": null,
+                      "children": []
+                    },
+                    {
+                      "id": "task-3.task-2.task-2.task-2.task-2",
+                      "description": "Build synthetic DAG fixture with RecursiveTask instances and dependency chain",
+                      "status": "pending",
+                      "complexity": 2,
+                      "cost_usd": 0.0,
+                      "commit_hash": null,
+                      "children": []
+                    },
+                    {
+                      "id": "task-3.task-2.task-2.task-2.task-3",
+                      "description": "Write test asserting plan_dag is called and execute_dag is NOT called when dry_run=True",
+                      "status": "pending",
+                      "complexity": 3,
+                      "cost_usd": 0.0,
+                      "commit_hash": null,
+                      "children": [
+                        {
+                          "id": "task-3.task-2.task-2.task-2.task-3.task-1",
+                          "description": "Create tests/test_dry_run.py with imports, importlib loader for persistent-solve, and TestDryRun class with test_dry_run_skips_execution that patches plan_dag and execute_dag, calls _run_dag_mode with dry_run=True, and asserts plan_dag called once and execute_dag not called",
+                          "status": "pending",
+                          "complexity": 3,
+                          "cost_usd": 0.3151425,
+                          "commit_hash": "8bf5bac",
+                          "children": []
+                        },
+                        {
+                          "id": "task-3.task-2.task-2.task-2.task-3.task-2",
+                          "description": "Run pytest on tests/test_dry_run.py and fix any import or assertion errors until the test passes green",
+                          "status": "pending",
+                          "complexity": 2,
+                          "cost_usd": 0.0,
+                          "commit_hash": null,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "id": "task-3.task-2.task-2.task-2.task-4",
+                      "description": "Write test asserting kanban JSON file is written with valid structure during dry-run",
+                      "status": "pending",
+                      "complexity": 3,
+                      "cost_usd": 0.0,
+                      "commit_hash": null,
+                      "children": [
+                        {
+                          "id": "task-3.task-2.task-2.task-2.task-4.task-1",
+                          "description": "Read existing tests/test_dry_run.py and scripts/persistent-solve.py to understand current structure, imports, and _run_dag_mode signature",
+                          "status": "done",
+                          "complexity": 1,
+                          "cost_usd": 0.16418649999999999,
+                          "commit_hash": "bdcae86",
+                          "children": []
+                        },
+                        {
+                          "id": "task-3.task-2.task-2.task-2.task-4.task-2",
+                          "description": "Write the test function that mocks plan_dag, calls _run_dag_mode with dry_run=True and kanban=True using a tempfile directory, then asserts the kanban JSON contains valid 'summary' and 'tree' keys with correct sub-fields",
+                          "status": "pending",
+                          "complexity": 3,
+                          "cost_usd": 0.0,
+                          "commit_hash": null,
+                          "children": []
+                        },
+                        {
+                          "id": "task-3.task-2.task-2.task-2.task-4.task-3",
+                          "description": "Run the new test with pytest and fix any failures until it passes",
+                          "status": "pending",
+                          "complexity": 2,
+                          "cost_usd": 0.0,
+                          "commit_hash": null,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "id": "task-3.task-2.task-2.task-2.task-5",
+                      "description": "Run pytest on tests/test_dry_run.py and verify all tests pass",
+                      "status": "pending",
+                      "complexity": 1,
+                      "cost_usd": 0.0,
+                      "commit_hash": null,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "task-3.task-2.task-2.task-3",
+                  "description": "Run pytest on tests/test_dry_run.py and fix any failures until all tests pass",
+                  "status": "pending",
+                  "complexity": 2,
+                  "cost_usd": 0.0,
+                  "commit_hash": null,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "task-3.task-2.task-3",
+              "description": "Run pytest on tests/test_dry_run.py and fix any import errors, mock targeting issues, or assertion failures",
+              "status": "pending",
+              "complexity": 2,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "task-3.task-3",
+          "description": "Add a recursive-mode dry-run test that mocks recursive_plan, asserts it was called, and asserts execute_recursive_dag was NOT called",
+          "status": "pending",
+          "complexity": 3,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": [
+            {
+              "id": "task-3.task-3.read-existing",
+              "description": "Read existing test_dry_run.py and plan_and_solve.py to understand current patterns and signatures",
+              "status": "done",
+              "complexity": 1,
+              "cost_usd": 0.18566575000000002,
+              "commit_hash": "5bf40c0",
+              "children": []
+            },
+            {
+              "id": "task-3.task-3.write-test",
+              "description": "Add test_recursive_dry_run_skips_execution method to TestDryRun class that mocks recursive_plan, calls _run_dag_mode with dry_run=True and recursive=True, and asserts execute_recursive_dag was not called",
+              "status": "pending",
+              "complexity": 3,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": [
+                {
+                  "id": "task-3.task-3.write-test.write-test-method",
+                  "description": "Add test_recursive_dry_run_skips_execution method to TestDryRun class that mocks recursive_plan, calls _run_dag_mode with dry_run=True and recursive=True, and asserts execute_recursive_dag was not called",
+                  "status": "pending",
+                  "complexity": 3,
+                  "cost_usd": 0.0,
+                  "commit_hash": null,
+                  "children": [
+                    {
+                      "id": "task-3.task-3.write-test.write-test-method.read-existing",
+                      "description": "Read tests/test_dry_run.py and relevant persistent_shell.py sections to understand existing patterns and signatures",
+                      "status": "done",
+                      "complexity": 1,
+                      "cost_usd": 0.14467,
+                      "commit_hash": "13a841d",
+                      "children": []
+                    },
+                    {
+                      "id": "task-3.task-3.write-test.write-test-method.write-method",
+                      "description": "Add test_recursive_dry_run_skips_execution method to TestDryRun class with proper mocks, call, and assertions",
+                      "status": "pending",
+                      "complexity": 2,
+                      "cost_usd": 0.0,
+                      "commit_hash": null,
+                      "children": []
+                    },
+                    {
+                      "id": "task-3.task-3.write-test.write-test-method.run-test",
+                      "description": "Run pytest on the new test method to verify it passes",
+                      "status": "pending",
+                      "complexity": 1,
+                      "cost_usd": 0.0,
+                      "commit_hash": null,
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "task-3.task-3.run-test",
+              "description": "Run the new test to verify it passes and all assertions hold",
+              "status": "pending",
+              "complexity": 1,
+              "cost_usd": 0.0,
+              "commit_hash": null,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "task-3.task-4",
+          "description": "Run the full test suite to ensure no regressions and all dry-run tests pass",
+          "status": "pending",
+          "complexity": 1,
+          "cost_usd": 0.0,
+          "commit_hash": null,
+          "children": []
+        }
+      ]
     }
   ]
 }
